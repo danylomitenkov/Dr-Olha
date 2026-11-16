@@ -512,8 +512,8 @@
       <div class="wizard-viewport">
         <div id="wizard-track" class="wizard-track">
 
-          <!-- СТРАНИЦА 1 (СЛЕВА): ОРИЕНТИР + ЛЕГЕНДА -->
-          <div class="wizard-page p-4 sm:p-5 space-y-4">
+          <!-- СТРАНИЦА 1 (СЛЕВА): ОРИЕНТИР + ЛЕГЕНДА + ВСТРЕЧА С NPC -->
+          <div class="wizard-page p-4 sm:p-5 space-y-3.5">
             <div class="bg-black/50 border border-slate-700/70 rounded-xl p-3 flex items-center justify-between gap-3">
               <div class="flex items-start gap-2.5 min-w-0">
                 <span class="text-base text-cyan-400 shrink-0">🧭</span>
@@ -527,24 +527,31 @@
               </a>
             </div>
 
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
-              <div class="text-xs font-scifi font-bold text-amber-300 uppercase tracking-wider">Хроника места</div>
-              <p id="modal-node-lore" class="text-slate-200 leading-relaxed text-sm"></p>
-            </div>
-
-            <div class="bg-amber-950/35 border border-amber-500/35 rounded-xl p-3 flex items-center gap-3">
-              <span class="text-2xl">🔒</span>
-              <div class="text-xs text-amber-200/90">
-                В этом месте спрятан тайный ларец. Сделайте выбор на следующей странице и бросьте 3D-кубик, чтобы распечатать награду!
+            <!-- Карточка NPC-персонажа локации -->
+            <div id="modal-npc-card" class="bg-gradient-to-r from-indigo-950/65 to-slate-900/80 border border-indigo-400/40 rounded-2xl p-3.5 flex items-start gap-3">
+              <div id="modal-npc-avatar" class="w-11 h-11 rounded-xl bg-indigo-900/80 border border-indigo-300/50 flex items-center justify-center text-2xl shrink-0 shadow">
+                🧙‍♂️
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span id="modal-npc-name" class="font-fantasy font-bold text-indigo-100 text-sm">Имя NPC</span>
+                  <span id="modal-npc-role" class="text-[10px] font-scifi bg-indigo-950 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/40">Житель</span>
+                </div>
+                <p id="modal-npc-quote" class="text-xs text-slate-200 italic mt-1 leading-snug">«Реплика NPC...»</p>
               </div>
             </div>
 
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-3.5 space-y-1.5">
+              <div class="text-xs font-scifi font-bold text-amber-300 uppercase tracking-wider">Хроника места</div>
+              <p id="modal-node-lore" class="text-slate-200 leading-relaxed text-xs sm:text-sm"></p>
+            </div>
+
             <button id="btn-wizard-to-step1" type="button" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg transition active:scale-95">
-              Перейти к выбору и кубику →
+              Поговорить с NPC и пройти испытание →
             </button>
           </div>
 
-          <!-- СТРАНИЦА 2 (ПОСЕРЕДИНЕ): ЗАДАЧА + ДЕРЕВО РЕШЕНИЙ + 3D КУБИК -->
+          <!-- СТРАНИЦА 2 (ПОСЕРЕДИНЕ): ЗАДАЧА + ЗАГАДКИ (ЕСЛИ ЕСТЬ) + ДЕРЕВО РЕШЕНИЙ + 3D КУБИК -->
           <div class="wizard-page p-3.5 sm:p-5 space-y-3">
             <!-- Реальное задание на месте -->
             <div class="bg-amber-950/40 border border-amber-500/45 rounded-xl p-2.5 sm:p-3">
@@ -552,6 +559,18 @@
                 <span>📜</span> ЗАДАНИЕ НА ТОЧКЕ:
               </div>
               <p id="modal-node-task" class="text-xs sm:text-sm text-amber-50 mt-1 font-medium leading-snug"></p>
+            </div>
+
+            <!-- Блок загадок (например, 4 загадки Тролля у арки) -->
+            <div id="modal-riddles-box" class="hidden bg-purple-950/40 border border-purple-400/45 rounded-xl p-3 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-scifi font-bold text-purple-300 uppercase">🧩 Загадки стража (подвох!)</span>
+                <button id="btn-toggle-riddle-answer" type="button" class="text-[11px] px-2 py-0.5 rounded bg-purple-900/80 hover:bg-purple-800 text-purple-100 border border-purple-400/40 font-semibold">
+                  Показать ответ
+                </button>
+              </div>
+              <div id="modal-riddles-list" class="space-y-1.5 text-xs text-slate-200"></div>
+              <div id="modal-riddle-answer-box" class="hidden bg-black/60 border border-amber-400/50 rounded-lg p-2 text-xs text-amber-200 font-bold text-center"></div>
             </div>
 
             <!-- Дерево Решений Detroit -->
@@ -904,6 +923,16 @@
               <textarea id="edit-task" rows="2" class="w-full bg-black/70 border border-amber-500/40 rounded-lg p-2 text-white"></textarea>
             </div>
 
+            <div class="bg-indigo-950/35 p-2.5 rounded-xl border border-indigo-500/35 space-y-1.5">
+              <div class="text-indigo-300 font-bold">NPC-персонаж на точке:</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input type="text" id="edit-npc-avatar" placeholder="Иконка (🧙‍♂️)" class="bg-black/70 border border-slate-700 rounded p-1.5 text-white text-center">
+                <input type="text" id="edit-npc-name" placeholder="Имя NPC" class="sm:col-span-2 bg-black/70 border border-slate-700 rounded p-1.5 text-white">
+              </div>
+              <input type="text" id="edit-npc-role" placeholder="Роль (напр. Трактирщик)" class="w-full bg-black/70 border border-slate-700 rounded p-1.5 text-white">
+              <input type="text" id="edit-npc-quote" placeholder="Реплика NPC" class="w-full bg-black/70 border border-slate-700 rounded p-1.5 text-white">
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
                 <div class="text-cyan-300 font-bold">Выбор 1 (Detroit):</div>
@@ -1011,6 +1040,9 @@
 
         <!-- Вкладка 4: GPS Симулятор -->
         <div id="tab-content-gps" class="hidden space-y-3">
+          <div id="dm-https-warning" class="bg-amber-950/45 border border-amber-500/45 p-3 rounded-xl text-xs text-amber-200 space-y-1">
+            <!-- Заполняется проверкой window.isSecureContext -->
+          </div>
           <div class="bg-black/50 p-3.5 rounded-xl border border-slate-800">
             <h4 class="font-bold text-sky-300 font-scifi mb-1">Тестирование дома</h4>
             <p class="text-xs text-slate-400">Телепортируйте маркер героини к любой точке или запустите автоматическую прогулку.</p>
@@ -1469,45 +1501,51 @@
       {
         id: 'loc-troense',
         badge: 'ТАИНСТВО I',
-        name: 'Врата Начала',
+        name: 'Звёздные Врата Полуночи',
         realAddress: 'Troensevej, Sydbyen, Næstved',
         gmapsUrl: 'https://maps.app.goo.gl/WhnboXMUChB6Bbex7',
         lat: 55.205008,
         lng: 11.767960,
-        icon: '🛡️',
-        shortDesc: 'Первая руна пути вспыхнула у границ родного квартала.',
-        lore: 'Тайный перекрёсток, с которого начинается большое странствие. Старые камни хранят следы всех наших прогулок, а сегодня на них зажглась золотая печать именинницы.',
-        task: 'Остановитесь у перекрёстка, назовите 1 любимое совместное воспоминание этого года и сделайте свой первый выбор судьбы.',
+        icon: '🌠',
+        shortDesc: 'Здесь летней ночью упало сорок звёзд...',
+        npc: {
+          avatar: '🔭',
+          name: 'Звездочёт-Соня Тимми',
+          role: 'Хранитель Ночной Вахты',
+          quote: '«Хр-р-р... Тридцать восемь... тридцать девять... Ой, я не сплю! Я просто проверяю веки на герметичность! Это всё чай меня разморил...»'
+        },
+        lore: 'Говорят, этим летом ровно в три часа ночи небо над этим местом пролилось самым сильным звездопадом года. Двое путников сидели на стульчиках с тёплым чаем и считали огненные следы. Дозорный Тимми мирно уснул на посту, а истинная Хранительница Неба не сомкнула глаз и насчитала почти сорок падающих звёзд!',
+        task: 'Вспомните ту самую летнюю ночь со звездопадом! Разбудите сонного Звездочёта и скажите ему, кто на самом деле победил в подсчёте звёзд (и сколько примерно их было!).',
         mystery: {
-          title: 'Запечатанный Сундук Странника',
-          clue: 'Внутри сокрыто нечто бездонное и надёжное на каждый день — верный спутник, готовый вместить все будущие находки...'
+          title: 'Запечатанный Сундук Ночного Дозора',
+          clue: 'Внутри таится нечто бездонное и надёжное на каждый день — верный спутник, готовый вместить все будущие находки сегодняшней прогулки...'
         },
         loot: {
           icon: '👜',
           name: 'Сумка на каждый день (Everyday Bag)',
-          fantasyTitle: 'Сумка Бесконечного Странника',
+          fantasyTitle: 'Бездонная Сумка Ночного Дозора',
           desc: 'Идеальный спутник на каждый день! Носите с удовольствием и складывайте сюда следующие трофеи!'
         },
         choices: [
           {
-            tag: '[СМЕКАЛКА]',
-            title: 'Проверить компас и наметить путь по звёздам',
-            skill: 'Смекалка',
+            tag: '[ХРАНИТЕЛЬНИЦА НЕБА]',
+            title: 'Напомнить соне, кто насчитал все 40 звёзд под чаёк',
+            skill: 'Харизма',
             dc: 9,
-            alignment: 'Мудрость',
-            desc: 'Внимательно изучить карту и оценить предстоящий маршрут.',
-            outcome: 'Путь открыт! Картограф дарует вам ясность взора.',
-            failOutcome: 'Ветер чуть сбил карту, но достаточно обнять Мастера Игры на 5 секунд, чтобы замок поддался!'
+            alignment: 'Гармония',
+            desc: 'Улыбнуться и предъявить права чемпионки ночного неба.',
+            outcome: 'Звездочёт виновато разводит руками: «Твоя правда, я вырубился! Держи ключ от сундука без очереди!»',
+            failOutcome: 'Тимми всё ещё сонный и щурится! Принесите ему воображаемую кружку горячего чая (или обнимите) — и замок откроется!'
           },
           {
-            tag: '[ИНТУИЦИЯ]',
-            title: 'Довериться сердцу и загадать желание дня',
-            skill: 'Харизма',
+            tag: '[ЗВЁЗДНАЯ СМЕКАЛКА]',
+            title: 'Наметить новый маршрут по следам летних комет',
+            skill: 'Смекалка',
             dc: 10,
-            alignment: 'Гармония',
-            desc: 'Сделать глубокий вдох свежего воздуха и поймать ритм праздника.',
-            outcome: 'Удача на вашей стороне! Замок сундука щёлкнул сам собой.',
-            failOutcome: 'Печать упрямится! Назовите одну вещь, за которую хотите похвалить себя сегодня — и сундук откроется!'
+            alignment: 'Мудрость',
+            desc: 'Оглядеть горизонт и загадать главное желание на новый год жизни.',
+            outcome: 'Путь ясен! Маг вручает снаряжение для дальнейшего похода.',
+            failOutcome: 'Облака чуть скрыли ориентиры! Назовите 1 желание на этот год вслух — и сундук распахнётся!'
           }
         ],
         chosenPath: null,
@@ -1523,40 +1561,46 @@
         gmapsUrl: 'https://maps.app.goo.gl/od2Z9BzLEbTuQD8x6',
         lat: 55.203343,
         lng: 11.767081,
-        icon: '⚔️',
-        shortDesc: 'Среди деревянных башен прячется испытание для смелых.',
-        lore: 'Место звонкого смеха и старинных качелей в зелёной роще. Здесь время замедляется, возвращая лёгкость и азарт приключений.',
-        task: 'Встаньте у площадки (можно слегка качнуться на качелях или пройтись по бортику!) и выберите испытание храбрости.',
+        icon: '🍺',
+        shortDesc: 'Былое поле битвы, где ныне крутят билеты и пьют эль.',
+        npc: {
+          avatar: '🧔',
+          name: 'Трактирщик Бьёрн «Пивная Борода»',
+          role: 'Продавец билетов и сосед',
+          quote: '«Эй, путники! Раньше тут тени на мечах рубились, а теперь у меня главный аттракцион района — канатная переправа! Билет стоит две улыбки, а пока ждёте — вот вам кружечка, за ваше здоровье!»'
+        },
+        lore: 'Древние хроники гласят, что когда-то здесь гремела легендарная Битва Теней. Но века стёрли кровь и доспехи — теперь это знаменитое туристическое местечко с маленькой канатной дорогой. У самого входа примостился наш весёлый сосед-трактирщик: он неспешно продаёт билетики туристам, потягивает холодное пиво и травит байки о былых героях.',
+        task: 'Подойдите к той самой детской канатной дороге (зиплайну)! Прокатитесь или потяните трос на удачу — и договоритесь с попивающим пиво Трактирщиком о награде.',
         mystery: {
-          title: 'Морозный Ларец Северного Воина',
-          clue: 'От крышки веет зимней свежестью, пряным ароматом рождественских вечеров и весёлым звоном. Руны сулят +5 к смелости!'
+          title: 'Личный Погребок Трактирщика',
+          clue: 'От крышки веет зимней свежестью, пряным ароматом рождественских вечеров и лёгкой хмельной весёлостью. Руны сулят +5 к храбрости!'
         },
         loot: {
           icon: '🍺',
           name: 'Рождественское пиво (Julebryg)',
-          fantasyTitle: 'Эликсир Северной Храбрости',
-          desc: 'Праздничный датский рождественский эль! Согревает душу и дарит улыбку и смелость.'
+          fantasyTitle: 'Эль Трактирщика с Поля Битвы',
+          desc: 'Праздничный датский рождественский эль от самого Бьёрна! Согревает душу и дарит звонкий смех.'
         },
         choices: [
           {
-            tag: '[ХРАБРОСТЬ]',
-            title: 'Пройти по деревянному мостику испытаний',
+            tag: '[КАНАТНАЯ ПЕРЕПРАВА]',
+            title: 'Оседлать канатную дорогу древних воинов (зиплайн)',
             skill: 'Храбрость',
             dc: 10,
             alignment: 'Отвага',
-            desc: 'Смело преодолеть игровую переправу с улыбкой.',
-            outcome: 'Безупречное равновесие! Дух рощи снимает морозную печать.',
-            failOutcome: 'Ой, чуть пошатнуло! Сделайте красивую победную позу для фото от Мастера — и приз ваш!'
+            desc: 'Проверить трос в деле, как в те самые весёлые деньки!',
+            outcome: 'Чистый полёт! Трактирщик аплодирует кружкой и выдаёт свой лучший запас!',
+            failOutcome: 'Трос сегодня туговат! Сделайте героическую позу на фоне площадки для фото от Мастера — и эль ваш!'
           },
           {
-            tag: '[ОБАЯНИЕ]',
-            title: 'Произнести звонкий датский тост: «Skål!»',
+            tag: '[КРУЖКА С СОСЕДОМ]',
+            title: 'Чокнуться с Трактирщиком и крикнуть: «Skål!»',
             skill: 'Харизма',
             dc: 9,
             alignment: 'Сердце',
-            desc: 'Громко и весело поприветствовать духов скандинавских праздников.',
-            outcome: 'Смех разрушает чары замка — время забирать трофей!',
-            failOutcome: 'Духи просят ещё одну улыбку и «Skål!» погромче — и ларец распахнётся!'
+            desc: 'Поддержать компанию весёлого соседа-ветерана.',
+            outcome: '«Skål!» — смеётся Бьёрн, — «Вот это я понимаю, настоящие гости! Забирай!»',
+            failOutcome: 'Трактирщик плохо расслышал! Скажите «Skål!» ещё раз с самой хитрой улыбкой — и ларец откроется!'
           }
         ],
         chosenPath: null,
@@ -1567,45 +1611,51 @@
       {
         id: 'loc-kolonihaver',
         badge: 'ТАИНСТВО III',
-        name: 'Сады Зачарованных Лепестков',
+        name: 'Гномий Град Манглебьерг (1976)',
         realAddress: 'Manglebjergvængets Kolonihaver, Næstved',
         gmapsUrl: 'https://maps.app.goo.gl/LswuNQBjsqenSQjcA',
         lat: 55.199087,
         lng: 11.767753,
-        icon: '🌿',
-        shortDesc: 'Тайные садовые аллеи хранят нежный перезвон.',
-        lore: 'Уютный лабиринт садовых домиков и потаённых тропинок на южном краю земель. Воздух здесь полон покоя и тихой мелодии ветра.',
-        task: 'Оглядитесь вокруг садовых домиков: найдите самую милую деталь (цветок, фонарик или вывеску) и выберите свой путь.',
+        icon: '🍄',
+        shortDesc: 'Неизведанный сад 138 гномов, фонарей и фруктовых улиц.',
+        npc: {
+          avatar: '🧙‍♂️',
+          name: 'Староста Гном Олли',
+          role: 'Хранитель 138 садов (с 1976 года)',
+          quote: '«Тс-с! Не топчите морковку! Нашему городку в 2026 году исполняется ровно 50 лет! На востоке у нас улицы Фруктов, на западе — улицы Деревьев. Зажгите фонарик и найдите моего каменного брата!»'
+        },
+        lore: 'Вы с Олей ещё никогда здесь не бывали — это тайное королевство прямо на южном краю Нестведа! Основанное в 1976 году, оно празднует в 2026-м свой 50-летний юбилей. На 138 крошечных участках вокруг холма Манглебьерг живут садовые гномы и сияют уютные лампочки. Говорят, по ночам улицы Фруктов и Овощей на востоке перешёптываются с улицами Деревьев на западе.',
+        task: 'Исследуйте незнакомый городок гномов: найдите хотя бы одного садового гнома, уютную гирлянду/фонарик у домика и посмотрите, в честь какого фрукта или дерева названа ближайшая улочка!',
         mystery: {
-          title: 'Музыкальный Ковчег Сирен',
-          clue: 'Стоит прислушаться к замку, как изнутри доносится чистый серебряный перезвон — словно капли росы падают на звонкие язычки...'
+          title: 'Юбилейная Шкатулка Гномов (1976)',
+          clue: 'Стоит прислушаться к замку, как изнутри доносится чистый серебряный перезвон — словно весенние капли падают на звонкие металлические лепестки...'
         },
         loot: {
           icon: '🎵',
           name: 'Калимба (Kalimba)',
-          fantasyTitle: 'Калимба Небесных Ветров',
+          fantasyTitle: 'Юбилейная Калимба Манглебьерга',
           desc: 'Волшебный музыкальный инструмент! Её мягкий перезвон создаёт уют и уносит любые заботы.'
         },
         choices: [
           {
-            tag: '[МЕЛОДИЯ]',
-            title: 'Напеть пару строк любимой песни среди аллей',
-            skill: 'Харизма',
-            dc: 11,
-            alignment: 'Гармония',
-            desc: 'Разбудить садовых фей чистой мелодией на свежем воздухе.',
-            outcome: 'Сады отзываются эхом! Печать ковчега поддаётся звуковому ключу.',
-            failOutcome: 'Фальшивая нота рассмешила фей! Пропойте любую мелодию «ла-ла-ла» — и ларец откроется!'
-          },
-          {
-            tag: '[ВНИМАТЕЛЬНОСТЬ]',
-            title: 'Найти самую необычную калитку или украшение сада',
+            tag: '[СЛЕДОПЫТ САДОВ]',
+            title: 'Найти каменного гнома или светящийся фонарик в палисаднике',
             skill: 'Смекалка',
             dc: 10,
             alignment: 'Мудрость',
-            desc: 'Показать спутнику самую уютную деталь садового городка.',
-            outcome: 'Тайная руна бардов найдена! Музыкальный ларец готов открыться.',
-            failOutcome: 'Пришлось приглядеться получше! Угадайте с одной попытки любимый цвет Мастера — и ключ у вас!'
+            desc: 'Проявить внимательность в неизведанном сказочном квартале.',
+            outcome: 'Гном Олли снимает колпак: «Вот это глаз-алмаз! Принимай наш поющий сувенир к 50-летию!»',
+            failOutcome: 'Гномы умело прячутся в кустах! Назовите 2 любимых фрукта и 1 дерево — и староста отдаст ключ!'
+          },
+          {
+            tag: '[ПЕСНЯ ХОЛМА]',
+            title: 'Напеть короткую мелодию для спящих цветов',
+            skill: 'Харизма',
+            dc: 11,
+            alignment: 'Гармония',
+            desc: 'Проверить акустику тайных садовых тропинок.',
+            outcome: 'Фонарики садов мигают в такт вашей мелодии, открывая музыкальный ковчег!',
+            failOutcome: 'Гномы просят бис! Пропойте «Happy Birthday» шёпотом — и шкатулка распахнётся!'
           }
         ],
         chosenPath: null,
@@ -1616,45 +1666,51 @@
       {
         id: 'loc-appenaes',
         badge: 'ТАИНСТВО IV',
-        name: 'Гавань Водных Шёпотов',
-        realAddress: 'Askevænget, Appenæs, Næstved',
+        name: 'Тёмная Гавань Аппенэса',
+        realAddress: 'Askevænget, Appenæs (у вашего веломоста)',
         gmapsUrl: 'https://maps.app.goo.gl/ZyFa6hYqZraCXuZSA',
         lat: 55.202190,
         lng: 11.749449,
-        icon: '🌊',
-        shortDesc: 'Свежий бриз у воды зовёт согреться тайным даром.',
-        lore: 'Тихий прибрежный уголок у вод Аппенэса. Здесь дуют морские ветры и плещутся волны, помнящие древние драккары.',
-        task: 'Остановитесь на тихой улочке близ берега, согрейте ладони и загадайте желание о будущем путешествии.',
+        icon: '⚓',
+        shortDesc: 'Мрачный порт купцов, опустевший из-за Морского Фестиваля...',
+        npc: {
+          avatar: '🏴‍☠️',
+          name: 'Лоцман Мортен «Солёный Шёпот»',
+          role: 'Последний смотритель причала',
+          quote: '«Опоздали вы, странники... Весь город ушёл на шхунах в море на Великий Фестиваль Прилива! Лавки заколочены, причалы пусты. Но вы же те самые всадники, что часто пролетают по мосту на стальных двухколёсных конях?»'
+        },
+        lore: 'Старинный портовый город в сумраке северных вод. Обычно здесь кипит торг: заморские купцы сгружают пряности, диковинные сосуды и байки о морских чудовищах. Но сегодня на узких улочках тихо и пусто — почти все горожане отплыли в открытый фьорд на таинственный Морской Фестиваль Фонарей. Лишь покачиваются на привязи пустые лодки да тускло горит фонарь старого Лоцмана у вашего велосипедного моста.',
+        task: 'Окиньте взглядом пустынную гавань, лодки и знакомый вам велосипедный мост. Вспомните самую красивую вашу велопрогулку здесь и поговорите с единственным оставшимся Лоцманом.',
         mystery: {
-          title: 'Сосуд Вечного Пламени',
-          clue: 'Ларец строг и прочен, как рыцарская сталь, с узким горлышком у вершины — внутри таится живительное тепло на любую прогулку...'
+          title: 'Сундук Заморского Купца',
+          clue: 'Ларец строг и прочен, как корабельная сталь, с узким горлышком у вершины — внутри таится согревающее тепло, не остывающее даже в морской шторм...'
         },
         loot: {
           icon: '🍶',
           name: 'Металлическая бутылка с узким горлышком',
-          fantasyTitle: 'Фляга Вечного Источника',
-          desc: 'Стильная металлическая бутылка! Надёжно сохраняет тепло горячего напитка и свежесть воды.'
+          fantasyTitle: 'Фляга Заморского Купца',
+          desc: 'Стильная металлическая бутылка! Надёжно сохраняет тепло горячего напитка и свежесть воды в любом плавании.'
         },
         choices: [
           {
-            tag: '[СТОЙКОСТЬ]',
-            title: 'Бросить вызов осеннему ветру фьорда',
-            skill: 'Храбрость',
+            tag: '[БАЙКА ПОРТА]',
+            title: 'Выслушать мрачную легенду Лоцмана о Морском Фестивале',
+            skill: 'Смекалка',
             dc: 10,
-            alignment: 'Отвага',
-            desc: 'Почувствовать свежий бриз воды и согреться крепкими объятиями.',
-            outcome: 'Холод бессилен перед вашим теплом! Замок сосуда откликается сам.',
-            failOutcome: 'Ветер оказался прохладным! Спрячьте руки в тёплые руки Мастера на 5 секунд — и печать растает!'
+            alignment: 'Мудрость',
+            desc: 'Узнать, почему купцы бросили свои лавки ради ночного обряда на воде.',
+            outcome: 'Лоцман заговорщицки кивает: «Редкий гость не испугался тишины порта! Бери этот заморский сосуд!»',
+            failOutcome: 'Туман приглушил голос старика! Посмотрите на воду и назовите страну, к которой хотелось бы причалить — и сундук ваш!'
           },
           {
-            tag: '[ТАЙНА ВОД]',
-            title: 'Назвать страну, куда хотелось бы поехать вместе',
-            skill: 'Смекалка',
+            tag: '[ВЕЛО-РЫЦАРИ МОСТА]',
+            title: 'Похвастаться, как вы покоряете этот мост на велосипедах',
+            skill: 'Храбрость',
             dc: 9,
-            alignment: 'Сердце',
-            desc: 'Отправить мечту о новом путешествии в сторону залива.',
-            outcome: 'Духи воды принимают мечту — замок стального ларца щёлкает!',
-            failOutcome: 'Волна просит назвать ещё одну деталь идеального отпуска — и награда ваша!'
+            alignment: 'Отвага',
+            desc: 'Рассказать смотрителю о ваших летних заездах по этим видам.',
+            outcome: 'Мортен улыбается сквозь седую бороду: «Двухколёсные кони быстрее моих барок! Согрейтесь этим даром!»',
+            failOutcome: 'Морской ветер щиплет щёки! Погрейте ладони в руках Мастера на 5 секунд — и замок оттает!'
           }
         ],
         chosenPath: null,
@@ -1665,45 +1721,58 @@
       {
         id: 'loc-vordingborg',
         badge: 'ТАИНСТВО V',
-        name: 'Святилище Зеландских Богов',
-        realAddress: '299 Vordingborgvej, Terbækshuse, Næstved',
+        name: 'Арка Скандинавского Тролля',
+        realAddress: '299 Vordingborgvej (арка под дорогой)',
         gmapsUrl: 'https://maps.app.goo.gl/Bx4av4k14Ztg3uJL7',
         lat: 55.204994,
         lng: 11.755275,
-        icon: '⚡',
-        shortDesc: 'На древнем тракте ждёт эликсир абсолютной радости.',
-        lore: 'Королевский тракт, соединяющий побережье с сердцем Нестведа. Здесь пересекаются линии древней бодрости и счастья всей Зеландии.',
-        task: 'Оглянитесь вдоль древней дороги и ответьте на главный секрет этого региона, чтобы открыть последний грааль!',
+        icon: '🧌',
+        shortDesc: 'Под каменной аркой сидит древний Тролль с хитрыми загадками...',
+        npc: {
+          avatar: '🧌',
+          name: 'Тролль Громопуз',
+          role: 'Страж Арки Мидгарда',
+          quote: '«СТОЯТЬ! Бородой Одина и молотом Тора клянусь — над моей аркой грохочут железные повозки, а подо мной пройдёт лишь та, кто отгадает все ЧЕТЫРЕ древние загадки Севера! (Подсказка: на первый взгляд они разные, но ответ один...)»'
+        },
+        lore: 'Древний тракт, идущий прямо над глубокой каменной аркой. В скандинавских сагах такие врата между землями всегда стережёт мохнатый великан-тролль. Говорят, сам Локи научил его четырём запутанным загадкам — кажется, будто речь в них идёт о щитах, морях и горах Ётунхейма, но истинный ответ у всех один и тот же!',
+        task: 'Ответьте на 4 загадки Тролля (не бойтесь — проиграть здесь невозможно, а правильный ответ один на все четыре!).',
+        riddles: [
+          '1. Что в Мидгарде состоит из двух могучих полушарий, как врата Вальгаллы, но никогда не пускает внутрь без разрешения?',
+          '2. Оно круглее щита Тора и мягче перины Фрейи, но стоит ему уютно устроиться на диване — весь остальной мир замирает. Что это?',
+          '3. Когда Тролль спрашивает у русскоговорящих путников в ноябре: «Где мы с вами иногда оказываемся по колено в приключениях?» — чьё это место?',
+          '4. Что объединяет три предыдущие загадки, звучит как тайное заклинание скальдов и гарантированно рассмешит Тролля до слёз?'
+        ],
+        riddleAnswer: '🔥 ЕДИНЫЙ ОТВЕТ НА ВСЕ 4 ЗАГАДКИ: «ЖОПА ДАНИКА»! 😂',
         mystery: {
-          title: 'Сияющий Грааль Истинной Радости',
-          clue: 'Секрет этих земель! Сквозь золотую печать пробивается бодрящий цитрусовый аромат лайма и весёлое шипение пузырьков чистого счастья...'
+          title: 'Сакральный Грааль Асгарда',
+          clue: 'Сквозь золотую печать пробивается яркий цитрусовый аромат лайма и весёлое шипение пузырьков чистого зеландского счастья...'
         },
         loot: {
           icon: '🍋',
           name: 'Бутылка Faxe Kondi',
-          fantasyTitle: 'Нектар Истинного Счастья',
-          desc: 'Легендарный зеландский эликсир радости (родом из соседнего Faxe)! Мгновенно заряжает энергией на 100%.'
+          fantasyTitle: 'Сакральный Нектар Асгарда (Faxe Kondi)',
+          desc: 'Легендарный зеландский эликсир радости и бодрости! Заслуженная победа над Троллем!'
         },
         choices: [
           {
-            tag: '[ЭЙФОРИЯ]',
-            title: 'Улыбнуться так ярко, чтобы разогнать ноябрьские тучи',
-            skill: 'Харизма',
-            dc: 9,
-            alignment: 'Сердце',
-            desc: 'Настроиться на самую бодрую волну сегодняшнего праздника.',
-            outcome: 'Искрящаяся волна счастья! Грааль с шипением сбрасывает печать.',
-            failOutcome: 'Не хватает пары пузырьков энергии! Сделайте победный прыжок «ура» — и нектар ваш!'
-          },
-          {
-            tag: '[МУДРОСТЬ ЗЕЛАНДИИ]',
-            title: 'Вспомнить, какой город-сосед подарил Дании знаменитый нектар',
+            tag: '[ОТВЕТ ТРОЛЛЮ]',
+            title: 'Торжественно произнести разгадку всех 4 загадок вслух!',
             skill: 'Смекалка',
             dc: 10,
             alignment: 'Мудрость',
-            desc: 'Вспомнить название знаменитого соседа Нестведа в регионе Зеландия.',
-            outcome: 'Верно, это же Faxe! Знание земель снимает золотую печать!',
-            failOutcome: 'Подсказка начинается на букву Ф... Прошепчите ответ на ухо Мастеру — и ларец откроется!'
+            desc: 'Выдержать паузу и громко выдать коронный ответ прямо под аркой.',
+            outcome: 'Тролль роняет дубину и хохочет так, что эхо летит до самого Асгарда: «ХА-ХА! Проходи, мудрейшая! Забирай нектар богов!»',
+            failOutcome: 'Тролль чуть глуховат от шума машин сверху! Повторите ответ чуть погромче и с хитрой улыбкой — и он пропустит вас с призом!'
+          },
+          {
+            tag: '[ХИТРОСТЬ ЛОКИ]',
+            title: 'Перехитрить Тролля комплиментом и проскочить под аркой',
+            skill: 'Харизма',
+            dc: 9,
+            alignment: 'Сердце',
+            desc: 'Использовать скандинавское обаяние, чтобы очаровать стража.',
+            outcome: 'Громопуз краснеет под мхом: «Ладно, ты переговорила даже самого Локи! Держи главный эликсир!»',
+            failOutcome: 'Тролль просит «дайте пять» его огромной лапе (или ладони Мастера) — и ворота свободны!'
           }
         ],
         chosenPath: null,
@@ -1713,7 +1782,7 @@
       }
     ];
 
-    const STORAGE_KEY = 'dr_olha_quest_state_v4';
+    const STORAGE_KEY = 'dr_olha_quest_state_v5';
     const MASTER_QUERY_KEY = 'dm';
     const MASTER_QUERY_SECRET = 'master2026';
     const MASTER_PIN = '2026';
@@ -2281,6 +2350,45 @@
       document.getElementById('modal-node-task').textContent = loc.task || 'Осмотрите локацию и сделайте свой выбор.';
       document.getElementById('modal-gmaps-link').href = loc.gmapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=walking`;
 
+      // Карточка NPC персонажа локации
+      const npcCard = document.getElementById('modal-npc-card');
+      if (loc.npc && loc.npc.name) {
+        npcCard.classList.remove('hidden');
+        document.getElementById('modal-npc-avatar').textContent = loc.npc.avatar || '🧙‍♂️';
+        document.getElementById('modal-npc-name').textContent = loc.npc.name;
+        document.getElementById('modal-npc-role').textContent = loc.npc.role || 'Персонаж';
+        document.getElementById('modal-npc-quote').textContent = loc.npc.quote || '';
+      } else {
+        npcCard.classList.add('hidden');
+      }
+
+      // Блок загадок (если есть у локации, как у Тролля)
+      const riddlesBox = document.getElementById('modal-riddles-box');
+      const riddlesList = document.getElementById('modal-riddles-list');
+      const riddleAnsBox = document.getElementById('modal-riddle-answer-box');
+      const toggleAnsBtn = document.getElementById('btn-toggle-riddle-answer');
+      if (Array.isArray(loc.riddles) && loc.riddles.length > 0) {
+        riddlesBox.classList.remove('hidden');
+        riddlesList.innerHTML = '';
+        loc.riddles.forEach((rText) => {
+          const p = document.createElement('p');
+          p.className = 'bg-black/40 border border-purple-500/25 rounded-lg p-2 leading-snug';
+          p.textContent = rText;
+          riddlesList.appendChild(p);
+        });
+        riddleAnsBox.classList.add('hidden');
+        riddleAnsBox.textContent = loc.riddleAnswer || '';
+        toggleAnsBtn.textContent = 'Показать ответ';
+        toggleAnsBtn.onclick = () => {
+          Sound.click();
+          const isHidden = riddleAnsBox.classList.contains('hidden');
+          riddleAnsBox.classList.toggle('hidden');
+          toggleAnsBtn.textContent = isHidden ? 'Скрыть ответ' : 'Показать ответ';
+        };
+      } else {
+        riddlesBox.classList.add('hidden');
+      }
+
       // Кнопка быстрого редактирования для DM прямо на точке!
       const dmEditBtn = document.getElementById('btn-dm-edit-current');
       if (isMasterUnlocked) {
@@ -2658,6 +2766,10 @@
         showToast('⚠️', 'Геолокация не поддерживается браузером');
         return;
       }
+      if (!window.isSecureContext) {
+        showToast('🔒', 'GPS на телефоне работает только по HTTPS (используйте Netlify или SSH-туннель)', 4500);
+        return;
+      }
       if (gpsWatchId !== null) {
         navigator.geolocation.clearWatch(gpsWatchId);
         gpsWatchId = null;
@@ -2806,6 +2918,14 @@
 
       renderDmLocationsList();
       renderDmTeleportButtons();
+      const warnEl = document.getElementById('dm-https-warning');
+      if (window.isSecureContext) {
+        warnEl.className = 'bg-emerald-950/45 border border-emerald-500/45 p-3 rounded-xl text-xs text-emerald-200';
+        warnEl.textContent = '✅ Текущий адрес безопасен (HTTPS / localhost) — живой GPS на телефоне разрешён!';
+      } else {
+        warnEl.className = 'bg-amber-950/50 border border-amber-500/50 p-3 rounded-xl text-xs text-amber-200 space-y-1';
+        warnEl.innerHTML = '<b>⚠️ Почему GPS не включается на телефоне по http://192.168...:</b><br>Safari и Chrome запрещают GPS на обычных HTTP-адресах. Чтобы включить живой GPS, залейте <code>olha-quest.html</code> на <b>app.netlify.com/drop</b> или запустите <code>ssh -R 80:localhost:8080 nokey@localhost.run</code>.';
+      }
       document.getElementById('dm-json-area').value = JSON.stringify({ session: sessionConfig, quests: questLocations }, null, 2);
       document.getElementById('dialog-terminal').showModal();
     }
@@ -2918,6 +3038,10 @@
       document.getElementById('edit-short').value = loc.shortDesc || '';
       document.getElementById('edit-lore').value = loc.lore || '';
       document.getElementById('edit-task').value = loc.task || '';
+      document.getElementById('edit-npc-avatar').value = loc.npc?.avatar || '🧙‍♂️';
+      document.getElementById('edit-npc-name').value = loc.npc?.name || '';
+      document.getElementById('edit-npc-role').value = loc.npc?.role || '';
+      document.getElementById('edit-npc-quote').value = loc.npc?.quote || '';
 
       document.getElementById('edit-c1-tag').value = c1.tag || '[ПУТЬ 1]';
       document.getElementById('edit-c1-title').value = c1.title || '';
@@ -2968,6 +3092,12 @@
       loc.shortDesc = document.getElementById('edit-short').value.trim();
       loc.lore = document.getElementById('edit-lore').value.trim();
       loc.task = document.getElementById('edit-task').value.trim();
+      loc.npc = {
+        avatar: document.getElementById('edit-npc-avatar').value.trim() || '🧙‍♂️',
+        name: document.getElementById('edit-npc-name').value.trim(),
+        role: document.getElementById('edit-npc-role').value.trim(),
+        quote: document.getElementById('edit-npc-quote').value.trim()
+      };
 
       if (loc.choices[0]) {
         loc.choices[0].tag = document.getElementById('edit-c1-tag').value.trim() || '[ПУТЬ 1]';
