@@ -329,6 +329,38 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+    /* Уникальная стилистика карточки под каждую локацию */
+    #quest-dialog-surface.quest-theme-starlight {
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.22), transparent 55%),
+                  linear-gradient(160deg, rgba(11, 20, 44, 0.97), rgba(6, 10, 24, 0.98));
+      border-color: rgba(125, 211, 252, 0.55);
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.22);
+    }
+    #quest-dialog-surface.quest-theme-tavern {
+      background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.22), transparent 55%),
+                  linear-gradient(160deg, rgba(42, 22, 12, 0.97), rgba(18, 10, 6, 0.98));
+      border-color: rgba(251, 191, 36, 0.55);
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.22);
+    }
+    #quest-dialog-surface.quest-theme-garden {
+      background: radial-gradient(circle at top right, rgba(52, 211, 153, 0.22), transparent 55%),
+                  linear-gradient(160deg, rgba(12, 36, 24, 0.97), rgba(7, 20, 14, 0.98));
+      border-color: rgba(74, 222, 128, 0.52);
+      box-shadow: 0 0 40px rgba(34, 197, 94, 0.2);
+    }
+    #quest-dialog-surface.quest-theme-darkport {
+      background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.2), transparent 55%),
+                  linear-gradient(160deg, rgba(12, 24, 34, 0.98), rgba(5, 9, 15, 0.99));
+      border-color: rgba(56, 189, 248, 0.48);
+      box-shadow: 0 0 40px rgba(14, 165, 233, 0.2);
+    }
+    #quest-dialog-surface.quest-theme-nordic {
+      background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.24), transparent 55%),
+                  linear-gradient(160deg, rgba(26, 16, 46, 0.97), rgba(10, 8, 22, 0.98));
+      border-color: rgba(192, 132, 252, 0.55);
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.24);
+    }
   </style>
 </head>
 <body class="overflow-hidden flex flex-col select-none">
@@ -337,22 +369,22 @@
   <header class="absolute top-0 left-0 right-0 z-20 p-2 md:p-4 pointer-events-none">
     <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
 
-      <!-- Профиль Героини -->
-      <div class="glass-detroit pointer-events-auto rounded-2xl px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-2 border border-amber-500/35 shadow-2xl max-w-full">
+      <!-- Профиль Героини (нажмите, чтобы настроить персонажа!) -->
+      <button id="btn-open-character" type="button" title="Настроить своего персонажа" class="glass-detroit pointer-events-auto rounded-2xl px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center gap-2 border border-amber-500/35 hover:border-amber-400 shadow-2xl max-w-full text-left transition active:scale-95">
         <div class="relative shrink-0">
-          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-base sm:text-xl shadow-lg border border-amber-200">
+          <div id="hud-hero-avatar" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-base sm:text-xl shadow-lg border border-amber-200">
             👑
           </div>
           <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400 border-2 border-black"></span>
         </div>
         <div class="min-w-0">
           <div class="flex items-center gap-1.5">
-            <h1 id="hud-session-title" class="font-fantasy font-bold text-xs sm:text-base text-amber-200 tracking-wider truncate">КВЕСТ ОЛЬГИ</h1>
-            <span class="hidden sm:inline-block text-[10px] font-scifi bg-sky-950 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600/40 shrink-0">D&amp;D</span>
+            <h1 id="hud-session-title" class="font-fantasy font-bold text-xs sm:text-base text-amber-200 tracking-wider truncate">ОЛЬГА</h1>
+            <span class="hidden sm:inline-block text-[10px] font-scifi bg-sky-950 text-sky-300 px-1.5 py-0.5 rounded border border-sky-600/40 shrink-0">⚙️ Герой</span>
           </div>
-          <p id="hud-session-subtitle" class="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate hidden sm:block">Хроники Нестведа • 5 Таинств</p>
+          <p id="hud-session-subtitle" class="text-[10px] sm:text-[11px] text-slate-300 font-medium truncate hidden sm:block">Чародейка Нестведа • Нажми, чтобы настроить</p>
         </div>
-      </div>
+      </button>
 
       <!-- Счетчики и Кнопки HUD -->
       <div class="flex items-center gap-1.5 sm:gap-2 pointer-events-auto ml-auto">
@@ -468,10 +500,10 @@
   <!-- МОДАЛКА 1: ЕДИНЫЙ ГОРИЗОНТАЛЬНЫЙ МАСТЕР КВЕСТА (3 СТРАНИЦЫ ->)      -->
   <!-- =================================================================== -->
   <dialog id="dialog-quest-detail" closedby="any" aria-labelledby="modal-node-title" class="w-[calc(100dvw-1rem)] max-w-xl">
-    <div class="modal-surface w-full rounded-3xl border border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden text-slate-100">
+    <div id="quest-dialog-surface" class="modal-surface w-full rounded-3xl border border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden text-slate-100 transition-colors duration-300">
 
       <!-- Шапка диалога + Быстрая правка для DM -->
-      <div class="p-3.5 sm:p-4 border-b border-cyan-500/30 flex items-center justify-between bg-black/50 gap-2">
+      <div id="quest-dialog-header" class="p-3.5 sm:p-4 border-b border-cyan-500/30 flex items-center justify-between bg-black/50 gap-2">
         <div class="flex items-center gap-3 min-w-0">
           <div id="modal-node-icon" class="w-11 h-11 shrink-0 rounded-2xl bg-cyan-950/90 border border-cyan-400/70 flex items-center justify-center text-2xl shadow-lg">
             🛡️
@@ -485,7 +517,6 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <!-- Кнопка моментального редактирования этой точки прямо по пути (видна ТОЛЬКО Мастеру!) -->
           <button id="btn-dm-edit-current" type="button" class="hidden px-2.5 py-1.5 rounded-xl bg-red-950/80 hover:bg-red-900 border border-red-500/50 text-red-200 text-xs font-bold">
             ✏️ Править
           </button>
@@ -493,6 +524,37 @@
         </div>
       </div>
 
+      <!-- РЕЖИМ "ДАЛЕКО": только краткое описание и кнопка маршрута -->
+      <div id="quest-distance-lock" class="hidden p-5 space-y-4">
+        <div class="bg-black/50 border border-slate-700/70 rounded-xl p-3 flex items-center justify-between gap-3">
+          <div class="flex items-start gap-2.5 min-w-0">
+            <span class="text-base text-cyan-400 shrink-0">🧭</span>
+            <div class="min-w-0">
+              <div class="text-xs font-scifi uppercase tracking-wider text-slate-400 font-bold">Ориентир:</div>
+              <p id="lock-node-real" class="text-cyan-200 font-medium text-xs sm:text-sm mt-0.5"></p>
+            </div>
+          </div>
+          <a id="lock-gmaps-link" href="#" target="_blank" rel="noopener noreferrer" class="shrink-0 px-3 py-1.5 rounded-lg bg-sky-900/75 hover:bg-sky-800 border border-sky-500/40 text-sky-100 text-xs font-semibold flex items-center gap-1 transition">
+            <span>Маршрут</span> ↗
+          </a>
+        </div>
+
+        <div class="bg-slate-900/65 border border-slate-700/60 rounded-2xl p-4 space-y-1.5">
+          <div class="text-xs font-scifi font-bold text-amber-300 uppercase">Краткая заметка о месте</div>
+          <p id="lock-node-short" class="text-sm text-slate-200 leading-relaxed"></p>
+        </div>
+
+        <div class="bg-amber-950/45 border border-amber-500/50 rounded-2xl p-4 text-center space-y-2">
+          <div class="text-3xl">🔒</div>
+          <div class="font-scifi font-bold text-xs text-amber-300 uppercase">Локация ещё далеко</div>
+          <p id="lock-distance-hint" class="text-xs text-amber-100/90 leading-relaxed">
+            Подойдите ближе (менее 45 м), чтобы встретить персонажа, узнать проблему и открыть броски 3D-кубика!
+          </p>
+        </div>
+      </div>
+
+      <!-- ПОЛНЫЙ ИНТЕРАКТИВНЫЙ МАСТЕР (когда подошли близко!) -->
+      <div id="quest-wizard-content" class="flex flex-col">
       <!-- Горизонтальный индикатор 3 шагов (Слева -> Направо) -->
       <div class="px-4 py-2.5 bg-black/40 border-b border-slate-800 flex items-center justify-between gap-2 text-xs">
         <button type="button" id="step-tab-0" class="flex-1 py-1.5 px-2 rounded-lg font-scifi font-bold transition text-center bg-cyan-950/90 text-cyan-300 border border-cyan-500/50">
@@ -500,7 +562,7 @@
         </button>
         <span class="text-slate-600 font-bold">→</span>
         <button type="button" id="step-tab-1" class="flex-1 py-1.5 px-2 rounded-lg font-scifi font-bold transition text-center bg-slate-900/60 text-slate-400 border border-slate-800">
-          2. Выбор и d20
+          2. Решение и d20
         </button>
         <span class="text-slate-600 font-bold">→</span>
         <button type="button" id="step-tab-2" class="flex-1 py-1.5 px-2 rounded-lg font-scifi font-bold transition text-center bg-slate-900/60 text-slate-400 border border-slate-800">
@@ -573,12 +635,14 @@
               <div id="modal-riddle-answer-box" class="hidden bg-black/60 border border-amber-400/50 rounded-lg p-2 text-xs text-amber-200 font-bold text-center"></div>
             </div>
 
-            <!-- Дерево Решений Detroit -->
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs font-scifi font-bold text-cyan-400 uppercase tracking-wider">Шаг A: Выберите путь (Detroit)</span>
+            <!-- Свободный выбор подхода к проблеме (Без жестких рельс!) -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-scifi font-bold text-cyan-400 uppercase tracking-wider">Шаг A: Как вы решаете проблему?</span>
+                <span id="modal-node-dc-badge" class="text-[11px] font-mono text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/40">DC 10</span>
               </div>
-              <div id="modal-choices-list" class="space-y-2"></div>
+              <input type="text" id="modal-custom-plan" placeholder="Ваш план своими словами (по желанию)..." class="w-full bg-black/60 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 focus:outline-none">
+              <div id="modal-choices-list" class="grid grid-cols-1 gap-1.5"></div>
             </div>
 
             <!-- Встроенный 60fps 3D-кубик d20 прямо внутри страницы! -->
@@ -649,6 +713,7 @@
 
         </div>
       </div>
+      </div> <!-- /#quest-wizard-content -->
 
     </div>
   </dialog>
@@ -686,7 +751,100 @@
   </dialog>
 
   <!-- =================================================================== -->
-  <!-- МОДАЛКА 3: ИНВЕНТАРЬ И ХРОНИКА (БЕЗ СПОЙЛЕРОВ)                      -->
+  <!-- МОДАЛКА 2B: РЕДАКТОР ПЕРСОНАЖА ДЛЯ ОЛЬГИ                            -->
+  <!-- =================================================================== -->
+  <dialog id="dialog-character" closedby="any" aria-labelledby="char-dialog-title" class="w-[calc(100dvw-1rem)] max-w-md">
+    <div class="modal-surface rounded-3xl border border-amber-400/55 p-5 text-slate-100 shadow-2xl space-y-4 max-h-[88dvh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span id="char-preview-avatar" class="text-2xl">👑</span>
+          <div>
+            <h2 id="char-dialog-title" class="font-fantasy font-bold text-base text-amber-200">ТВОЙ ПЕРСОНАЖ</h2>
+            <p class="text-xs text-slate-400">Настрой облик, класс и характеристики</p>
+          </div>
+        </div>
+        <button id="btn-close-character" type="button" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-lg">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 font-mono mb-1">Имя героини:</label>
+          <input type="text" id="char-input-name" class="w-full bg-black/60 border border-slate-700 rounded-xl p-2.5 text-white focus:border-amber-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 font-mono mb-1">Класс / Титул:</label>
+          <input type="text" id="char-input-title" class="w-full bg-black/60 border border-slate-700 rounded-xl p-2.5 text-white focus:border-amber-400 focus:outline-none mb-1.5">
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="char-preset-btn px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 border border-slate-700" data-preset="Чародейка Уюта">Чародейка Уюта</button>
+            <button type="button" class="char-preset-btn px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 border border-slate-700" data-preset="Валькирия Севера">Валькирия Севера</button>
+            <button type="button" class="char-preset-btn px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 border border-slate-700" data-preset="Следопыт Нестведа">Следопыт</button>
+            <button type="button" class="char-preset-btn px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 border border-slate-700" data-preset="Бардесса Ветров">Бардесса</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 font-mono mb-1">Выбери аватар (будет на карте!):</label>
+          <div id="char-avatar-grid" class="grid grid-cols-4 gap-2">
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="👑">👑</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🧙‍♀️">🧙‍♀️</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🧝‍♀️">🧝‍♀️</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🧚‍♀️">🧚‍♀️</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🦊">🦊</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="⚔️">⚔️</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🌙">🌙</button>
+            <button type="button" class="char-avatar-opt p-2 rounded-xl bg-black/50 border border-slate-700 text-xl" data-av="🐱">🐱</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 font-mono mb-1">Цвет ауры на карте:</label>
+          <div class="flex gap-2">
+            <button type="button" class="char-color-opt w-8 h-8 rounded-full border-2 border-white bg-sky-400" data-color="#38bdf8"></button>
+            <button type="button" class="char-color-opt w-8 h-8 rounded-full border-2 border-transparent bg-yellow-400" data-color="#facc15"></button>
+            <button type="button" class="char-color-opt w-8 h-8 rounded-full border-2 border-transparent bg-emerald-400" data-color="#34d399"></button>
+            <button type="button" class="char-color-opt w-8 h-8 rounded-full border-2 border-transparent bg-purple-400" data-color="#c084fc"></button>
+            <button type="button" class="char-color-opt w-8 h-8 rounded-full border-2 border-transparent bg-rose-400" data-color="#fb7185"></button>
+          </div>
+        </div>
+
+        <div class="bg-black/45 border border-slate-800 rounded-2xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-scifi font-bold text-amber-300 uppercase">Очки характеристик</span>
+            <span id="char-points-left" class="font-mono font-bold text-emerald-400">Осталось: 0</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>🗣️ Харизма (убеждать)</span>
+            <div class="flex items-center gap-2">
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="charisma:-1">-</button>
+              <span id="char-val-charisma" class="w-6 text-center font-mono font-bold">+3</span>
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="charisma:1">+</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>🧠 Смекалка (хитрить)</span>
+            <div class="flex items-center gap-2">
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="wit:-1">-</button>
+              <span id="char-val-wit" class="w-6 text-center font-mono font-bold">+2</span>
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="wit:1">+</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>⚔️ Храбрость (рисковать)</span>
+            <div class="flex items-center gap-2">
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="courage:-1">-</button>
+              <span id="char-val-courage" class="w-6 text-center font-mono font-bold">+2</span>
+              <button type="button" class="w-7 h-7 rounded bg-slate-800 font-bold" data-stat-adj="courage:1">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btn-save-character" type="button" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold text-xs uppercase tracking-wider shadow-lg">
+        ✨ Сохранить образ героини
+      </button>
+    </div>
+  </dialog>
   <!-- =================================================================== -->
   <dialog id="dialog-inventory" closedby="any" aria-labelledby="inventory-title" class="w-[calc(100dvw-1rem)] max-w-2xl">
     <div class="modal-surface w-full max-h-[88dvh] rounded-3xl border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-slate-100">
@@ -860,6 +1018,13 @@
                 <select id="dm-sess-order" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white">
                   <option value="free">Свободный (куда угодно)</option>
                   <option value="sequential">Строго по очереди (I → V)</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-slate-400 font-mono mb-1">Проверка дистанции GPS:</label>
+                <select id="dm-sess-proximity" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white">
+                  <option value="strict">Строго в радиусе (далеко — только описание)</option>
+                  <option value="off">Отключена (можно открывать издалека)</option>
                 </select>
               </div>
             </div>
@@ -1146,6 +1311,9 @@
         this.rolling = false;
         this.targetNumber = 20;
         this.particles = [];
+        this.cssWidth = canvas.clientWidth || Number(canvas.getAttribute('width')) || 190;
+        this.cssHeight = canvas.clientHeight || Number(canvas.getAttribute('height')) || 190;
+        this.syncDpi();
 
         const phi = (1 + Math.sqrt(5)) / 2;
         const raw = [
@@ -1265,9 +1433,24 @@
         return Dice3DEngine.qNorm([qw, qx, qy, qz]);
       }
 
+      syncDpi() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        const w = this.canvas.clientWidth || this.cssWidth || 190;
+        const h = this.canvas.clientHeight || this.cssHeight || 190;
+        this.cssWidth = w;
+        this.cssHeight = h;
+        const targetW = Math.round(w * dpr);
+        const targetH = Math.round(h * dpr);
+        if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
+          this.canvas.width = targetW;
+          this.canvas.height = targetH;
+        }
+        return dpr;
+      }
+
       spawnSparks(count, color = '#fde047') {
-        const cx = this.canvas.width / 2;
-        const cy = this.canvas.height / 2;
+        const cx = (this.cssWidth || 190) / 2;
+        const cy = (this.cssHeight || 190) / 2;
         for (let i = 0; i < count; i++) {
           const ang = Math.random() * Math.PI * 2;
           const spd = 1.2 + Math.random() * 3.5;
@@ -1362,9 +1545,11 @@
       }
 
       draw(bounceY = 0, scaleMult = 1) {
+        const dpr = this.syncDpi();
         const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
+        const w = this.cssWidth;
+        const h = this.cssHeight;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, w, h);
 
         const cx = w / 2;
@@ -1494,13 +1679,24 @@
       wit: 2,
       courage: 2,
       radiusMeters: 45,
-      orderMode: 'free' // 'free' | 'sequential'
+      orderMode: 'free', // 'free' | 'sequential'
+      requireProximity: true
+    };
+
+    const DEFAULT_HERO = {
+      name: 'Ольга',
+      title: 'Звёздная Следопытка',
+      avatar: '🧙‍♀️',
+      auraColor: '#38bdf8',
+      bonusPool: 7
     };
 
     const DEFAULT_LOCATIONS = [
       {
         id: 'loc-troense',
         badge: 'ТАИНСТВО I',
+        theme: 'starlight',
+        dc: 9,
         name: 'Звёздные Врата Полуночи',
         realAddress: 'Troensevej, Sydbyen, Næstved',
         gmapsUrl: 'https://maps.app.goo.gl/WhnboXMUChB6Bbex7',
@@ -1556,6 +1752,8 @@
       {
         id: 'loc-legeplads',
         badge: 'ТАИНСТВО II',
+        theme: 'tavern',
+        dc: 9,
         name: 'Алтарь Игривых Теней',
         realAddress: 'Legeplads ved Dyssegårdsvej, Næstved',
         gmapsUrl: 'https://maps.app.goo.gl/od2Z9BzLEbTuQD8x6',
@@ -1611,6 +1809,8 @@
       {
         id: 'loc-kolonihaver',
         badge: 'ТАИНСТВО III',
+        theme: 'garden',
+        dc: 10,
         name: 'Гномий Град Манглебьерг (1976)',
         realAddress: 'Manglebjergvængets Kolonihaver, Næstved',
         gmapsUrl: 'https://maps.app.goo.gl/LswuNQBjsqenSQjcA',
@@ -1666,6 +1866,8 @@
       {
         id: 'loc-appenaes',
         badge: 'ТАИНСТВО IV',
+        theme: 'darkport',
+        dc: 9,
         name: 'Тёмная Гавань Аппенэса',
         realAddress: 'Askevænget, Appenæs (у вашего веломоста)',
         gmapsUrl: 'https://maps.app.goo.gl/ZyFa6hYqZraCXuZSA',
@@ -1721,6 +1923,8 @@
       {
         id: 'loc-vordingborg',
         badge: 'ТАИНСТВО V',
+        theme: 'nordic',
+        dc: 10,
         name: 'Арка Скандинавского Тролля',
         realAddress: '299 Vordingborgvej (арка под дорогой)',
         gmapsUrl: 'https://maps.app.goo.gl/Bx4av4k14Ztg3uJL7',
@@ -1782,13 +1986,15 @@
       }
     ];
 
-    const STORAGE_KEY = 'dr_olha_quest_state_v5';
+    const STORAGE_KEY = 'dr_olha_quest_state_v6';
+    const HERO_STORAGE_KEY = 'dr_olha_hero_profile_v1';
     const MASTER_QUERY_KEY = 'dm';
     const MASTER_QUERY_SECRET = 'master2026';
     const MASTER_PIN = '2026';
 
     // --- 4. СОСТОЯНИЕ ---
     let sessionConfig = JSON.parse(JSON.stringify(DEFAULT_SESSION));
+    let heroProfile = JSON.parse(JSON.stringify(DEFAULT_HERO));
     let questLocations = [];
     let broadcastMessage = null; // { id, text }
     let dismissedBroadcastId = null;
@@ -1874,7 +2080,24 @@
     }
 
     // --- 6. ХРАНИЛИЩЕ И ЖИВАЯ СИНХРОНИЗАЦИЯ С СЕРВЕРОМ ---
+    function loadHeroProfile() {
+      try {
+        const raw = localStorage.getItem(HERO_STORAGE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p && typeof p === 'object') heroProfile = { ...DEFAULT_HERO, ...p };
+        }
+      } catch (e) {}
+    }
+
+    function saveHeroProfile() {
+      try {
+        localStorage.setItem(HERO_STORAGE_KEY, JSON.stringify(heroProfile));
+      } catch (e) {}
+    }
+
     function loadLocalState() {
+      loadHeroProfile();
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -1982,12 +2205,29 @@
       } catch (e) {}
     }
 
+    function updatePlayerMarkerAppearance() {
+      if (!playerMarker) return;
+      const aura = heroProfile.auraColor || '#38bdf8';
+      const avatar = heroProfile.avatar || '🧙‍♀️';
+      const playerIcon = L.divIcon({
+        className: 'quest-marker-icon',
+        html: `<div class="player-marker" style="border-color:${aura};box-shadow:0 0 18px ${aura}, 0 0 6px #fff;" title="${heroProfile.name || 'Вы здесь'}">${avatar}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+      playerMarker.setIcon(playerIcon);
+    }
+
     function applySessionUI() {
-      document.getElementById('hud-session-title').textContent = sessionConfig.title || DEFAULT_SESSION.title;
-      document.getElementById('hud-session-subtitle').textContent = sessionConfig.subtitle || DEFAULT_SESSION.subtitle;
+      const heroName = heroProfile.name || 'Ольга';
+      const heroTitle = heroProfile.title || 'Звёздная Следопытка';
+      document.getElementById('hud-hero-avatar').textContent = heroProfile.avatar || '🧙‍♀️';
+      document.getElementById('hud-session-title').textContent = `${heroName} • ${sessionConfig.title || DEFAULT_SESSION.title}`;
+      document.getElementById('hud-session-subtitle').textContent = `${heroTitle} • ${sessionConfig.subtitle || DEFAULT_SESSION.subtitle}`;
       document.getElementById('inv-stat-charisma').textContent = `+${sessionConfig.charisma}`;
       document.getElementById('inv-stat-wit').textContent = `+${sessionConfig.wit}`;
       document.getElementById('inv-stat-courage').textContent = `+${sessionConfig.courage}`;
+      updatePlayerMarkerAppearance();
     }
 
     // --- 7. КАРТА, СРЕДНЕВЕКОВАЯ КАРТОГРАФИЯ И ЖИВОЙ 60FPS CANVAS ---
@@ -2013,6 +2253,7 @@
         iconAnchor: [16, 16]
       });
       playerMarker = L.marker([playerCoords.lat, playerCoords.lng], { icon: playerIcon, zIndexOffset: 1000 }).addTo(map);
+      updatePlayerMarkerAppearance();
 
       map.on('click', (e) => {
         if (!isMasterUnlocked) return;
@@ -2063,7 +2304,7 @@
         { lat: 55.2054, lng: 11.7618, label: 'Изумрудная Роща', sub: 'Disc Golf Bane', svg: svgTrees },
         { lat: 55.2026, lng: 11.7604, label: 'Перепутье Дракона', sub: 'Земли Нестведа', svg: svgDragon },
         { lat: 55.1998, lng: 11.7565, label: 'Королевский Тракт', sub: 'Южный Путь', svg: svgCrest },
-        { lat: 55.1993, lng: 11.7492, label: 'Залив Шёпота Вод', sub: 'Suså Fjord', svg: svgWaves }
+        { lat: 55.1993, lng: 11.7478, label: 'Залив Шёпота Вод', sub: 'Suså Fjord', svg: svgWaves }
       ];
 
       regions.forEach((reg) => {
@@ -2106,7 +2347,14 @@
       });
     }
 
-    // 60FPS средневековые анимации поверх карты (парусник на фьорде, летящий дракон, туман, золотые искры)
+    // 60FPS High-DPI средневековые анимации поверх карты
+    let mapClickRipples = [];
+
+    function spawnMapRipple(latlng, color = '#38bdf8') {
+      mapClickRipples.push({ lat: latlng.lat, lng: latlng.lng, age: 0, maxAge: 1.1, color });
+      if (mapClickRipples.length > 12) mapClickRipples.shift();
+    }
+
     function startMapAmbientFx() {
       const canvas = document.getElementById('map-fx-canvas');
       if (!canvas) return;
@@ -2114,32 +2362,100 @@
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduced) return;
 
+      if (map) {
+        map.on('click', (e) => spawnMapRipple(e.latlng, '#fde047'));
+      }
+
+      // Точная центральная линия воды канала Suså (по координатам карты Нестведа)
+      const canalPath = [
+        [55.2038, 11.7482],
+        [55.2022, 11.7488],
+        [55.2008, 11.7489],
+        [55.1993, 11.7478],
+        [55.1978, 11.7468]
+      ];
+      const samplePolyline = (pts, u) => {
+        const segs = pts.length - 1;
+        const scaled = Math.max(0, Math.min(segs - 0.0001, u * segs));
+        const idx = Math.floor(scaled);
+        const f = scaled - idx;
+        return [
+          pts[idx][0] + (pts[idx + 1][0] - pts[idx][0]) * f,
+          pts[idx][1] + (pts[idx + 1][1] - pts[idx][1]) * f
+        ];
+      };
+
       const clouds = Array.from({ length: 4 }, (_, i) => ({
         x: Math.random() * 1200,
         y: 80 + i * 170,
-        vx: 0.16 + i * 0.05,
+        vx: 10 + i * 3,
         r: 70 + i * 18
       }));
 
+      const seagulls = Array.from({ length: 5 }, (_, i) => ({
+        baseLat: 55.2016 + (i % 3) * 0.0007,
+        baseLng: 11.7484 + (i % 2) * 0.0006,
+        phase: i * 1.3,
+        speed: 0.45 + i * 0.07,
+        rx: 0.0009 + i * 0.00015,
+        ry: 0.0005 + i * 0.0001
+      }));
+
+      const songbirds = Array.from({ length: 4 }, (_, i) => ({
+        baseLat: 55.2036 + i * 0.0005,
+        baseLng: 11.7555 + (i % 2) * 0.0012,
+        phase: i * 1.7,
+        speed: 0.55 + i * 0.08
+      }));
+
+      const drawBird = (x, y, flap, color, shadowColor, scale = 1, angle = 0) => {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = shadowColor || 'rgba(0,0,0,0.22)';
+        ctx.beginPath();
+        ctx.ellipse(2, 9, 4.5, 1.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-7, flap);
+        ctx.quadraticCurveTo(-3, -3.5, 0, 0);
+        ctx.quadraticCurveTo(3, -3.5, 7, flap);
+        ctx.stroke();
+        ctx.restore();
+      };
+
       let t = 0;
-      const renderFx = () => {
-        // Экономия батареи: ставим на паузу, если вкладка скрыта или открыт диалог
+      let lastNow = performance.now();
+
+      const renderFx = (now) => {
+        const dt = Math.min(0.05, Math.max(0.001, (now - lastNow) / 1000));
+        lastNow = now;
+
         const hasOpenDialog = document.querySelector('dialog[open]') !== null;
         if (!document.hidden && !hasOpenDialog && map) {
-          if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
+          const dpr = Math.min(window.devicePixelRatio || 1, 3);
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          const targetW = Math.round(w * dpr);
+          const targetH = Math.round(h * dpr);
+          if (canvas.width !== targetW || canvas.height !== targetH) {
+            canvas.width = targetW;
+            canvas.height = targetH;
           }
-          const w = canvas.width, h = canvas.height;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           ctx.clearRect(0, 0, w, h);
-          t += 0.016;
+          t += dt;
 
-          // 1. Плывущие средневековые облачка-туман по краям карты
+          // 1. Плывущие средневековые облачка-туман
           clouds.forEach((c) => {
-            c.x += c.vx;
+            c.x += c.vx * dt;
             if (c.x - c.r * 2 > w) c.x = -c.r * 2;
             const grad = ctx.createRadialGradient(c.x, c.y, 4, c.x, c.y, c.r);
-            grad.addColorStop(0, 'rgba(244, 234, 210, 0.16)');
+            grad.addColorStop(0, 'rgba(244, 234, 210, 0.14)');
             grad.addColorStop(1, 'rgba(244, 234, 210, 0)');
             ctx.fillStyle = grad;
             ctx.beginPath();
@@ -2147,51 +2463,124 @@
             ctx.fill();
           });
 
-          // 2. Маленький средневековый парусник, покачивающийся в водах залива Suså Fjord
-          const shipLat = 55.2005 + Math.sin(t * 0.25) * 0.0005;
-          const shipLng = 11.7440 + Math.cos(t * 0.18) * 0.0007;
+          // 2. Парусник строго на воде канала Suså + кильватерный след
+          const shipCycle = (t * 0.045) % 2;
+          const shipU = shipCycle <= 1 ? shipCycle : 2 - shipCycle;
+          const shipDir = shipCycle <= 1 ? 1 : -1;
+          const [shipLat, shipLng] = samplePolyline(canalPath, shipU);
           const shipPt = map.latLngToContainerPoint([shipLat, shipLng]);
-          if (shipPt.x > -40 && shipPt.x < w + 40 && shipPt.y > -40 && shipPt.y < h + 40) {
+          if (shipPt.x > -50 && shipPt.x < w + 50 && shipPt.y > -50 && shipPt.y < h + 50) {
+            // Водяная рябь / след за кормой
+            for (let k = 1; k <= 3; k++) {
+              const wakeU = Math.max(0, Math.min(1, shipU - shipDir * k * 0.028));
+              const [wLat, wLng] = samplePolyline(canalPath, wakeU);
+              const wPt = map.latLngToContainerPoint([wLat, wLng]);
+              ctx.save();
+              ctx.strokeStyle = `rgba(186, 230, 253, ${0.42 - k * 0.11})`;
+              ctx.lineWidth = 1.4;
+              ctx.beginPath();
+              ctx.arc(wPt.x, wPt.y + 3, 4 + k * 2.5 + Math.sin(t * 4 + k) * 1.2, 0.15 * Math.PI, 0.85 * Math.PI);
+              ctx.stroke();
+              ctx.restore();
+            }
             ctx.save();
-            ctx.translate(shipPt.x, shipPt.y);
-            ctx.rotate(Math.sin(t * 1.8) * 0.07);
-            // Корпус корабля
+            ctx.translate(shipPt.x, shipPt.y + Math.sin(t * 2.4) * 1.6);
+            ctx.rotate(Math.sin(t * 1.9) * 0.07);
+            if (shipDir < 0) ctx.scale(-1, 1);
             ctx.fillStyle = '#4a2e16';
             ctx.strokeStyle = '#fde68a';
             ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.lineTo(8, 6); ctx.lineTo(-8, 6); ctx.closePath();
             ctx.fill(); ctx.stroke();
-            // Парус
             ctx.fillStyle = '#fef3c7';
             ctx.beginPath();
-            ctx.moveTo(0, -14); ctx.quadraticCurveTo(9, -7, 0, -1); ctx.lineTo(-2, -1); ctx.closePath();
+            ctx.moveTo(0, -15); ctx.quadraticCurveTo(9, -7, 0, -1); ctx.lineTo(-2, -1); ctx.closePath();
             ctx.fill(); ctx.stroke();
             ctx.restore();
           }
 
-          // 3. Летящий дракон над южными полями
-          const dLat = 55.1982 + Math.sin(t * 0.35) * 0.0014;
-          const dLng = 11.7580 + Math.cos(t * 0.35) * 0.0028;
-          const dPt = map.latLngToContainerPoint([dLat, dLng]);
-          if (dPt.x > -40 && dPt.x < w + 40 && dPt.y > -40 && dPt.y < h + 40) {
-            const wingFlap = Math.sin(t * 5.2) * 5;
-            ctx.save();
-            ctx.translate(dPt.x, dPt.y);
-            ctx.fillStyle = 'rgba(0,0,0,0.35)';
-            ctx.beginPath();
-            ctx.ellipse(4, 10, 7, 2.5, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#fbbf24';
-            ctx.lineWidth = 1.8;
-            ctx.beginPath();
-            ctx.moveTo(-11, wingFlap); ctx.quadraticCurveTo(-4, -5, 0, 0);
-            ctx.quadraticCurveTo(4, -5, 11, wingFlap);
-            ctx.stroke();
-            ctx.restore();
-          }
+          // 3. Чайки над каналом и стайки птиц над городом
+          seagulls.forEach((b) => {
+            const bLat = b.baseLat + Math.sin(t * b.speed + b.phase) * b.ry;
+            const bLng = b.baseLng + Math.cos(t * b.speed + b.phase) * b.rx;
+            const pt = map.latLngToContainerPoint([bLat, bLng]);
+            if (pt.x > -20 && pt.x < w + 20 && pt.y > -20 && pt.y < h + 20) {
+              drawBird(pt.x, pt.y, Math.sin(t * 7 + b.phase) * 3.5, '#f8fafc', 'rgba(15,23,42,0.2)', 0.9);
+            }
+          });
+          songbirds.forEach((b) => {
+            const bLat = b.baseLat + Math.sin(t * b.speed + b.phase) * 0.0007;
+            const bLng = b.baseLng + Math.cos(t * b.speed * 0.8 + b.phase) * 0.0014;
+            const pt = map.latLngToContainerPoint([bLat, bLng]);
+            if (pt.x > -20 && pt.x < w + 20 && pt.y > -20 && pt.y < h + 20) {
+              drawBird(pt.x, pt.y, Math.sin(t * 9 + b.phase) * 3, '#fde68a', 'rgba(0,0,0,0.25)', 0.78);
+            }
+          });
 
-          // 4. Золотая искра, бегущая по нити созвездия между 5 точками
+          // 4. Уникальные анимированные существа и духи вокруг каждого из 5 квестов
+          questLocations.forEach((loc) => {
+            const cPt = map.latLngToContainerPoint([loc.lat, loc.lng]);
+            if (cPt.x < -80 || cPt.x > w + 80 || cPt.y < -80 || cPt.y > h + 80) return;
+            const theme = loc.theme || (loc.id === 'loc-troense' ? 'starlight' : loc.id === 'loc-legeplads' ? 'tavern' : loc.id === 'loc-kolonihaver' ? 'garden' : loc.id === 'loc-appenaes' ? 'darkport' : 'nordic');
+
+            if (theme === 'starlight') {
+              // Полярная сова + мерцающие звёзды и падающая звезда
+              const owlX = cPt.x + Math.cos(t * 0.8) * 30;
+              const owlY = cPt.y - 26 + Math.sin(t * 1.6) * 10;
+              drawBird(owlX, owlY, Math.sin(t * 6) * 3.2, '#e0f2fe', 'rgba(30,58,138,0.25)', 1.05);
+              for (let s = 0; s < 4; s++) {
+                const ang = t * 0.7 + s * 1.57;
+                const sx = cPt.x + Math.cos(ang) * (24 + s * 4);
+                const sy = cPt.y + Math.sin(ang) * (18 + s * 3);
+                const alpha = 0.35 + 0.55 * Math.abs(Math.sin(t * 3 + s));
+                ctx.fillStyle = `rgba(186, 230, 253, ${alpha})`;
+                ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.fill();
+              }
+            } else if (theme === 'tavern') {
+              // Игривые тени-огоньки + пара воронов
+              for (let f = 0; f < 3; f++) {
+                const ang = t * 1.4 + f * 2.1;
+                const fx = cPt.x + Math.cos(ang) * 26;
+                const fy = cPt.y + Math.sin(ang * 1.3) * 18;
+                ctx.fillStyle = 'rgba(244, 114, 182, 0.75)';
+                ctx.beginPath(); ctx.arc(fx, fy, 2.5, 0, Math.PI * 2); ctx.fill();
+              }
+              drawBird(cPt.x + Math.cos(-t * 1.1) * 34, cPt.y - 18 + Math.sin(t * 2) * 8, Math.sin(t * 8) * 3.5, '#cbd5e1', 'rgba(0,0,0,0.35)', 0.9);
+            } else if (theme === 'garden') {
+              // Садовые бабочки / светлячки 1976 года
+              for (let b = 0; b < 3; b++) {
+                const ang = t * 1.2 + b * 2.09;
+                const bx = cPt.x + Math.sin(ang) * 28;
+                const by = cPt.y + Math.sin(ang * 2) * 16;
+                const wing = 2.5 + Math.abs(Math.sin(t * 12 + b)) * 3;
+                ctx.fillStyle = b === 0 ? 'rgba(134, 239, 172, 0.85)' : 'rgba(253, 224, 71, 0.85)';
+                ctx.beginPath();
+                ctx.ellipse(bx - 2, by, wing, 2, -0.4, 0, Math.PI * 2);
+                ctx.ellipse(bx + 2, by, wing, 2, 0.4, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            } else if (theme === 'darkport') {
+              // Призрачные огоньки гавани + кружащая морская чайка
+              for (let g = 0; g < 3; g++) {
+                const ang = t * 0.9 + g * 2.1;
+                const gx = cPt.x + Math.cos(ang) * 28;
+                const gy = cPt.y + Math.sin(ang) * 20;
+                ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + 0.4 * Math.sin(t * 3 + g)})`;
+                ctx.beginPath(); ctx.arc(gx, gy, 3, 0, Math.PI * 2); ctx.fill();
+              }
+              drawBird(cPt.x + Math.sin(t * 1.0) * 36, cPt.y - 24 + Math.cos(t * 1.0) * 12, Math.sin(t * 6.5) * 3.5, '#e2e8f0', 'rgba(0,0,0,0.3)', 1.0);
+            } else {
+              // Вороны Одина (Хугин и Мунин) + золотой дракончик + рунические искры
+              drawBird(cPt.x + Math.cos(t * 1.1) * 36, cPt.y - 20 + Math.sin(t * 1.1) * 18, Math.sin(t * 7) * 3.5, '#1e293b', 'rgba(0,0,0,0.4)', 1.05);
+              drawBird(cPt.x + Math.cos(t * 1.1 + Math.PI) * 36, cPt.y - 20 + Math.sin(t * 1.1 + Math.PI) * 18, Math.sin(t * 7 + 1) * 3.5, '#334155', 'rgba(0,0,0,0.4)', 0.95);
+              const wyvX = cPt.x + Math.cos(t * 0.6) * 44;
+              const wyvY = cPt.y - 34 + Math.sin(t * 1.2) * 10;
+              drawBird(wyvX, wyvY, Math.sin(t * 5.2) * 5, '#fbbf24', 'rgba(0,0,0,0.35)', 1.35);
+            }
+          });
+
+          // 5. Золотая искра, бегущая по нити созвездия между 5 точками
           if (questLocations.length > 1) {
             const segCount = questLocations.length - 1;
             const totalProg = (t * 0.22) % segCount;
@@ -2211,6 +2600,26 @@
             ctx.beginPath();
             ctx.arc(sparkPt.x, sparkPt.y, 9, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+          }
+
+          // 6. Интерактивные магические круги при нажатии на карту
+          for (let i = mapClickRipples.length - 1; i >= 0; i--) {
+            const rp = mapClickRipples[i];
+            rp.age += dt;
+            if (rp.age >= rp.maxAge) {
+              mapClickRipples.splice(i, 1);
+              continue;
+            }
+            const rPt = map.latLngToContainerPoint([rp.lat, rp.lng]);
+            const prog = rp.age / rp.maxAge;
+            ctx.save();
+            ctx.globalAlpha = 1 - prog;
+            ctx.strokeStyle = rp.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(rPt.x, rPt.y, 6 + prog * 36, 0, Math.PI * 2);
+            ctx.stroke();
             ctx.restore();
           }
         }
@@ -2340,6 +2749,13 @@
       Sound.click();
 
       const dist = calculateDistance(playerCoords.lat, playerCoords.lng, loc.lat, loc.lng);
+      const radius = Number(sessionConfig.radiusMeters) || 45;
+      const gmapsHref = loc.gmapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=walking`;
+      const theme = loc.theme || (loc.id === 'loc-troense' ? 'starlight' : loc.id === 'loc-legeplads' ? 'tavern' : loc.id === 'loc-kolonihaver' ? 'garden' : loc.id === 'loc-appenaes' ? 'darkport' : 'nordic');
+
+      const surface = document.getElementById('quest-dialog-surface');
+      surface.classList.remove('quest-theme-starlight', 'quest-theme-tavern', 'quest-theme-garden', 'quest-theme-darkport', 'quest-theme-nordic');
+      surface.classList.add(`quest-theme-${theme}`);
 
       document.getElementById('modal-node-icon').textContent = loc.claimed ? loc.loot.icon : loc.icon;
       document.getElementById('modal-node-badge').textContent = loc.badge;
@@ -2347,8 +2763,35 @@
       document.getElementById('modal-node-title').textContent = loc.name;
       document.getElementById('modal-node-real').textContent = loc.realAddress;
       document.getElementById('modal-node-lore').textContent = loc.lore;
-      document.getElementById('modal-node-task').textContent = loc.task || 'Осмотрите локацию и сделайте свой выбор.';
-      document.getElementById('modal-gmaps-link').href = loc.gmapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${loc.lat},${loc.lng}&travelmode=walking`;
+      document.getElementById('modal-node-task').textContent = loc.task || 'Осмотрите локацию и выберите, как поступить.';
+      document.getElementById('modal-gmaps-link').href = gmapsHref;
+
+      const isNear = dist <= radius || sessionConfig.requireProximity === false || isMasterUnlocked || loc.claimed;
+      const lockBox = document.getElementById('quest-distance-lock');
+      const wizardContent = document.getElementById('quest-wizard-content');
+
+      // Кнопка быстрого редактирования для DM прямо на точке!
+      const dmEditBtn = document.getElementById('btn-dm-edit-current');
+      if (isMasterUnlocked) {
+        dmEditBtn.classList.remove('hidden');
+      } else {
+        dmEditBtn.classList.add('hidden');
+      }
+
+      if (!isNear) {
+        lockBox.classList.remove('hidden');
+        wizardContent.classList.add('hidden');
+        document.getElementById('lock-node-real').textContent = loc.realAddress;
+        document.getElementById('lock-gmaps-link').href = gmapsHref;
+        document.getElementById('lock-node-short').textContent = loc.shortDesc || 'Подойдите ближе к точке на карте, чтобы раскрыть это таинство.';
+        document.getElementById('lock-distance-hint').textContent = `Вы сейчас в ${dist} м от точки (нужно подойти ближе ${radius} м). Полное взаимодействие, встреча с персонажем и бросок кубика откроются на месте!`;
+        const dialog = document.getElementById('dialog-quest-detail');
+        if (!dialog.open) dialog.showModal();
+        return;
+      }
+
+      lockBox.classList.add('hidden');
+      wizardContent.classList.remove('hidden');
 
       // Карточка NPC персонажа локации
       const npcCard = document.getElementById('modal-npc-card');
@@ -2389,15 +2832,7 @@
         riddlesBox.classList.add('hidden');
       }
 
-      // Кнопка быстрого редактирования для DM прямо на точке!
-      const dmEditBtn = document.getElementById('btn-dm-edit-current');
-      if (isMasterUnlocked) {
-        dmEditBtn.classList.remove('hidden');
-      } else {
-        dmEditBtn.classList.add('hidden');
-      }
-
-      // Отрисовка развилок Detroit (Страница 2)
+      // Отрисовка развилок и свободного выбора навыка (Страница 2)
       renderWizardChoicesAndDice(loc);
 
       // Отрисовка результата и Ларца (Страница 3)
@@ -2416,26 +2851,46 @@
       return Number(sessionConfig.courage) || 2;
     }
 
+    const SKILL_APPROACHES = [
+      { skill: 'Харизма', icon: '✨', tag: '[ДИПЛОМАТИЯ И ШАРМ]', desc: 'Очаровать, договориться, рассмешить или вдохновить персонажа своей историей.' },
+      { skill: 'Смекалка', icon: '🧠', tag: '[НАБЛЮДАТЕЛЬНОСТЬ И УМ]', desc: 'Разгадать тайну, заметить скрытую деталь или найти нестандартный ход.' },
+      { skill: 'Храбрость', icon: '⚔️', tag: '[ДЕЙСТВИЕ И ОТВАГА]', desc: 'Решиться на смелый поступок, испытать удачу или бросить вызов стихии.' }
+    ];
+
     function renderWizardChoicesAndDice(loc) {
+      const dc = Number(loc.dc || loc.choices?.[0]?.dc || 10);
+      const dcBadge = document.getElementById('modal-node-dc-badge');
+      if (dcBadge) dcBadge.textContent = `Сложность: DC ${dc}`;
+
+      const planInput = document.getElementById('modal-custom-plan');
+      if (planInput) {
+        planInput.value = loc.customPlan || '';
+        planInput.oninput = () => {
+          loc.customPlan = planInput.value;
+          saveLocalState();
+        };
+      }
+
       const choicesContainer = document.getElementById('modal-choices-list');
       choicesContainer.innerHTML = '';
 
-      loc.choices.forEach((choice, idx) => {
-        const isSelected = loc.chosenPath === idx;
-        const bonus = getBonusForSkill(choice.skill);
+      SKILL_APPROACHES.forEach((approach) => {
+        const isSelected = loc.chosenSkill === approach.skill;
+        const bonus = getBonusForSkill(approach.skill);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `w-full text-left detroit-choice-card rounded-xl p-2.5 text-xs ${isSelected ? 'selected' : ''}`;
         btn.innerHTML = `
           <div class="flex items-center justify-between mb-0.5">
-            <span class="font-scifi font-bold text-cyan-300 text-xs">${choice.tag}</span>
-            <span class="text-xs text-amber-300 font-mono">${choice.skill} (+${bonus}) • DC ${choice.dc || 10}</span>
+            <span class="font-scifi font-bold text-cyan-300 text-xs">${approach.icon} ${approach.tag}</span>
+            <span class="text-xs text-amber-300 font-mono">${approach.skill} (+${bonus}) • DC ${dc}</span>
           </div>
-          <div class="font-bold text-white text-xs sm:text-sm">${choice.title}</div>
-          <p class="text-xs text-slate-300/85 leading-snug mt-0.5">${choice.desc}</p>
+          <div class="font-bold text-white text-xs sm:text-sm">Решить через «${approach.skill}»</div>
+          <p class="text-xs text-slate-300/85 leading-snug mt-0.5">${approach.desc}</p>
         `;
         btn.onclick = () => {
-          loc.chosenPath = idx;
+          loc.chosenSkill = approach.skill;
+          loc.chosenPath = approach.skill === 'Харизма' ? 0 : 1;
           saveLocalState();
           Sound.click();
           renderWizardChoicesAndDice(loc);
@@ -2451,8 +2906,8 @@
         wizardDice3D = new Dice3DEngine(document.getElementById('wizard-dice-canvas'));
       }
 
-      if (loc.chosenPath === null) {
-        statusEl.textContent = 'Шаг A: Выберите один из вариантов выше, чтобы разблокировать бросок.';
+      if (!loc.chosenSkill) {
+        statusEl.textContent = 'Шаг A: Выберите характеристику (Харизма, Смекалка или Храбрость), чтобы разблокировать бросок.';
         rollBtn.disabled = true;
         rollBtn.classList.add('opacity-50', 'cursor-not-allowed');
         nextBtn.classList.add('hidden');
@@ -2461,20 +2916,18 @@
         rollBtn.classList.remove('opacity-50', 'cursor-not-allowed');
 
         if (loc.diceRoll !== null && loc.diceRoll !== undefined) {
-          const choice = loc.choices[loc.chosenPath];
-          const bonus = getBonusForSkill(choice.skill);
+          const bonus = getBonusForSkill(loc.chosenSkill);
           const total = loc.diceRoll + bonus;
-          const dc = choice.dc || 10;
           const success = loc.diceRoll === 20 || (loc.diceRoll > 1 && total >= dc);
           statusEl.innerHTML = success
-            ? `<span class="text-emerald-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} = ${total} (против DC ${dc}) — ✨ УСПЕХ!</span>`
-            : `<span class="text-amber-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} = ${total} (против DC ${dc}) — 💨 Хитрый выкуп!</span>`;
+            ? `<span class="text-emerald-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (против DC ${dc}) — ✨ УСПЕХ!</span>`
+            : `<span class="text-amber-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (против DC ${dc}) — 💨 Хитрый выкуп!</span>`;
           nextBtn.classList.remove('hidden');
           wizardDice3D.targetNumber = loc.diceRoll;
           wizardDice3D.q = wizardDice3D.getTargetQuaternion(loc.diceRoll);
           wizardDice3D.draw(0, 1);
         } else {
-          statusEl.textContent = 'Путь выбран! Бросьте 3D-кубик, чтобы определить исход!';
+          statusEl.textContent = `Подход «${loc.chosenSkill}» выбран! Бросьте 3D-кубик, чтобы определить исход!`;
           nextBtn.classList.add('hidden');
         }
       }
@@ -2485,24 +2938,25 @@
       const outcomeTitle = document.getElementById('step3-outcome-title');
       const outcomeDesc = document.getElementById('step3-outcome-desc');
 
-      const choice = loc.chosenPath !== null ? loc.choices[loc.chosenPath] : null;
-      if (choice && loc.diceRoll !== null) {
+      const choice = loc.chosenPath !== null ? loc.choices?.[loc.chosenPath] : loc.choices?.[0];
+      const planNote = loc.customPlan ? ` (Ваш план: «${loc.customPlan}»)` : '';
+      if (loc.chosenSkill && loc.diceRoll !== null) {
         if (loc.diceSuccess) {
           outcomeBanner.className = 'rounded-2xl p-3.5 border bg-emerald-950/50 border-emerald-500/45 text-xs sm:text-sm';
-          outcomeTitle.textContent = '✨ УСПЕХ В ИСПЫТАНИИ!';
+          outcomeTitle.textContent = `✨ УСПЕХ ЧЕРЕЗ «${loc.chosenSkill.toUpperCase()}»!`;
           outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-emerald-300';
-          outcomeDesc.textContent = choice.outcome;
+          outcomeDesc.textContent = (choice?.outcome || 'Ваша находчивость сработала блестяще!') + planNote;
         } else {
           outcomeBanner.className = 'rounded-2xl p-3.5 border bg-amber-950/50 border-amber-500/50 text-xs sm:text-sm';
           outcomeTitle.textContent = '💨 ЧЕРЕЗ ТЕРНИИ К НАГРАДЕ!';
           outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-amber-300';
-          outcomeDesc.textContent = choice.failOutcome || 'Бросок оказался сложным, но улыбка и поддержка Мастера всё равно открывают ларец!';
+          outcomeDesc.textContent = (choice?.failOutcome || 'Бросок оказался сложным, но улыбка и поддержка Мастера всё равно открывают ларец!') + planNote;
         }
       } else {
         outcomeBanner.className = 'rounded-2xl p-3.5 border bg-slate-900/60 border-slate-700 text-xs sm:text-sm';
         outcomeTitle.textContent = 'ОЖИДАНИЕ РЕШЕНИЯ';
         outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-slate-300';
-        outcomeDesc.textContent = 'Сделайте выбор и бросьте кубик на странице 2!';
+        outcomeDesc.textContent = 'Выберите навык и бросьте кубик на странице 2!';
       }
 
       const lootHeader = document.getElementById('modal-loot-header');
@@ -2541,7 +2995,7 @@
 
     // Бросок встроенного 3D кубика на Странице 2
     document.getElementById('btn-wizard-roll-d20').onclick = () => {
-      if (!activeLocation || activeLocation.chosenPath === null) return;
+      if (!activeLocation || !activeLocation.chosenSkill) return;
       const rollBtn = document.getElementById('btn-wizard-roll-d20');
       rollBtn.disabled = true;
       document.getElementById('wizard-dice-status').textContent = 'Кубик вращается в 3D...';
@@ -2549,9 +3003,8 @@
       const val = Math.floor(Math.random() * 20) + 1;
       wizardDice3D.roll(val, (finalVal) => {
         document.getElementById('quick-d20-val').textContent = finalVal;
-        const choice = activeLocation.choices[activeLocation.chosenPath];
-        const bonus = getBonusForSkill(choice.skill);
-        const dc = choice.dc || 10;
+        const bonus = getBonusForSkill(activeLocation.chosenSkill);
+        const dc = Number(activeLocation.dc || activeLocation.choices?.[0]?.dc || 10);
         const success = finalVal === 20 || (finalVal > 1 && (finalVal + bonus) >= dc);
 
         activeLocation.diceRoll = finalVal;
@@ -2587,7 +3040,7 @@
     // Вскрытие ларца на Странице 3
     document.getElementById('btn-modal-claim').onclick = () => {
       if (!activeLocation || activeLocation.claimed) return;
-      if (activeLocation.chosenPath === null || activeLocation.diceRoll === null) {
+      if (!activeLocation.chosenSkill || activeLocation.diceRoll === null) {
         Sound.click();
         setWizardStep(1);
         showToast('🎲', 'Сначала сделайте выбор и бросьте 3D-кубик!');
@@ -2913,6 +3366,7 @@
       document.getElementById('dm-stat-courage').value = sessionConfig.courage;
       document.getElementById('dm-sess-radius').value = String(sessionConfig.radiusMeters);
       document.getElementById('dm-sess-order').value = sessionConfig.orderMode;
+      document.getElementById('dm-sess-proximity').value = sessionConfig.requireProximity === false ? 'off' : 'strict';
       document.getElementById('dm-broadcast-input').value = broadcastMessage ? broadcastMessage.text : '';
       document.getElementById('dm-edit-panel').classList.add('hidden');
 
@@ -2939,6 +3393,7 @@
       sessionConfig.courage = parseInt(document.getElementById('dm-stat-courage').value, 10) || 2;
       sessionConfig.radiusMeters = parseInt(document.getElementById('dm-sess-radius').value, 10) || 45;
       sessionConfig.orderMode = document.getElementById('dm-sess-order').value;
+      sessionConfig.requireProximity = document.getElementById('dm-sess-proximity').value !== 'off';
 
       applySessionUI();
       renderFantasyDecorations();
@@ -3347,7 +3802,123 @@
       }
     };
 
-    // --- 14. КНОПКИ HUD И СТАРТ ---
+    // --- 14. РЕДАКТОР ГЕРОИНИ И КНОПКИ HUD ---
+    let charDraft = null;
+
+    function renderCharacterDraft() {
+      if (!charDraft) return;
+      document.getElementById('char-preview-avatar').textContent = charDraft.avatar;
+      document.getElementById('char-preview-avatar').style.borderColor = charDraft.auraColor;
+      document.getElementById('char-preview-avatar').style.boxShadow = `0 0 18px ${charDraft.auraColor}`;
+      document.getElementById('char-val-charisma').textContent = charDraft.charisma;
+      document.getElementById('char-val-wit').textContent = charDraft.wit;
+      document.getElementById('char-val-courage').textContent = charDraft.courage;
+
+      const used = charDraft.charisma + charDraft.wit + charDraft.courage;
+      const left = Math.max(0, 7 - used);
+      document.getElementById('char-points-left').textContent = left;
+
+      document.querySelectorAll('.char-avatar-opt').forEach((btn) => {
+        const active = btn.dataset.avatar === charDraft.avatar;
+        btn.classList.toggle('ring-2', active);
+        btn.classList.toggle('ring-amber-400', active);
+        btn.classList.toggle('bg-amber-950/60', active);
+      });
+      document.querySelectorAll('.char-color-opt').forEach((btn) => {
+        const active = btn.dataset.color === charDraft.auraColor;
+        btn.classList.toggle('ring-2', active);
+        btn.classList.toggle('ring-white', active);
+      });
+    }
+
+    function openCharacterDialog() {
+      Sound.click();
+      charDraft = {
+        name: heroProfile.name || 'Ольга',
+        title: heroProfile.title || 'Звёздная Следопытка',
+        avatar: heroProfile.avatar || '🧙‍♀️',
+        auraColor: heroProfile.auraColor || '#38bdf8',
+        charisma: Number(sessionConfig.charisma) || 3,
+        wit: Number(sessionConfig.wit) || 2,
+        courage: Number(sessionConfig.courage) || 2
+      };
+      document.getElementById('char-input-name').value = charDraft.name;
+      document.getElementById('char-input-title').value = charDraft.title;
+      renderCharacterDraft();
+      document.getElementById('dialog-character').showModal();
+    }
+
+    const CHAR_PRESETS = {
+      'Чародейка Уюта': { title: 'Чародейка Уюта', avatar: '🧙‍♀️', auraColor: '#38bdf8', charisma: 3, wit: 3, courage: 1 },
+      'Валькирия Севера': { title: 'Валькирия Севера', avatar: '⚔️', auraColor: '#f59e0b', charisma: 2, wit: 1, courage: 4 },
+      'Следопыт Нестведа': { title: 'Следопыт Нестведа', avatar: '🦊', auraColor: '#22c55e', charisma: 2, wit: 3, courage: 2 },
+      'Бардесса Ветров': { title: 'Бардесса Ветров', avatar: '🌟', auraColor: '#a855f7', charisma: 4, wit: 2, courage: 1 }
+    };
+
+    document.querySelectorAll('.char-preset-btn').forEach((btn) => {
+      btn.onclick = () => {
+        const preset = CHAR_PRESETS[btn.dataset.preset];
+        if (!preset || !charDraft) return;
+        Sound.click();
+        Object.assign(charDraft, preset);
+        document.getElementById('char-input-title').value = charDraft.title;
+        renderCharacterDraft();
+      };
+    });
+
+    document.querySelectorAll('.char-avatar-opt').forEach((btn) => {
+      btn.onclick = () => {
+        if (!charDraft) return;
+        Sound.click();
+        charDraft.avatar = btn.dataset.avatar;
+        renderCharacterDraft();
+      };
+    });
+
+    document.querySelectorAll('.char-color-opt').forEach((btn) => {
+      btn.onclick = () => {
+        if (!charDraft) return;
+        Sound.click();
+        charDraft.auraColor = btn.dataset.color;
+        renderCharacterDraft();
+      };
+    });
+
+    document.querySelectorAll('[data-stat-adj]').forEach((btn) => {
+      btn.onclick = () => {
+        if (!charDraft) return;
+        const [stat, deltaStr] = btn.dataset.statAdj.split(':');
+        const delta = parseInt(deltaStr, 10);
+        const totalUsed = charDraft.charisma + charDraft.wit + charDraft.courage;
+        const nextVal = charDraft[stat] + delta;
+        if (nextVal < 1 || nextVal > 6) return;
+        if (delta > 0 && totalUsed >= 7) return;
+        Sound.click();
+        charDraft[stat] = nextVal;
+        renderCharacterDraft();
+      };
+    });
+
+    document.getElementById('btn-save-character').onclick = () => {
+      if (!charDraft) return;
+      heroProfile.name = document.getElementById('char-input-name').value.trim() || 'Ольга';
+      heroProfile.title = document.getElementById('char-input-title').value.trim() || 'Звёздная Следопытка';
+      heroProfile.avatar = charDraft.avatar;
+      heroProfile.auraColor = charDraft.auraColor;
+      sessionConfig.charisma = charDraft.charisma;
+      sessionConfig.wit = charDraft.wit;
+      sessionConfig.courage = charDraft.courage;
+
+      saveHeroProfile();
+      saveLocalState();
+      applySessionUI();
+      closeDialog(document.getElementById('dialog-character'));
+      Sound.chime();
+      showToast(heroProfile.avatar, `Образ «${heroProfile.name}» сохранён!`);
+    };
+
+    document.getElementById('btn-open-character').onclick = openCharacterDialog;
+    document.getElementById('btn-close-character').onclick = () => closeDialog(document.getElementById('dialog-character'));
     document.getElementById('btn-roll-d20').onclick = openStandaloneDiceModal;
     document.getElementById('btn-open-inventory').onclick = openInventory;
     document.getElementById('btn-close-inventory').onclick = () => closeDialog(document.getElementById('dialog-inventory'));
