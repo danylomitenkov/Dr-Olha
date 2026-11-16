@@ -5,6 +5,7 @@ import os
 import socket
 import socketserver
 import sys
+import time
 
 PORT = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -50,12 +51,21 @@ class QuestHandler(http.server.SimpleHTTPRequestHandler):
                 try:
                     with open(QUESTS_FILE, "r", encoding="utf-8") as f:
                         data = json.load(f)
-                    self._send_json(200, {"quests": data})
+                    if isinstance(data, list):
+                        self._send_json(200, {"quests": data, "session": None, "broadcast": None, "updatedAt": 0, "resetNonce": 0})
+                    else:
+                        self._send_json(200, {
+                            "quests": data.get("quests"),
+                            "session": data.get("session"),
+                            "broadcast": data.get("broadcast"),
+                            "updatedAt": data.get("updatedAt", 0),
+                            "resetNonce": data.get("resetNonce", 0),
+                        })
                     return
                 except Exception as exc:
                     self._send_json(500, {"error": str(exc)})
                     return
-            self._send_json(200, {"quests": None})
+            self._send_json(200, {"quests": None, "session": None, "broadcast": None, "updatedAt": 0, "resetNonce": 0})
             return
         super().do_GET()
 
@@ -69,9 +79,16 @@ class QuestHandler(http.server.SimpleHTTPRequestHandler):
                 if not isinstance(quests, list):
                     self._send_json(400, {"error": "Invalid quests payload"})
                     return
+                record = {
+                    "quests": quests,
+                    "session": payload.get("session"),
+                    "broadcast": payload.get("broadcast"),
+                    "updatedAt": payload.get("updatedAt", int(time.time() * 1000)),
+                    "resetNonce": payload.get("resetNonce", 0),
+                }
                 with open(QUESTS_FILE, "w", encoding="utf-8") as f:
-                    json.dump(quests, f, ensure_ascii=False, indent=2)
-                self._send_json(200, {"ok": True, "count": len(quests)})
+                    json.dump(record, f, ensure_ascii=False, indent=2)
+                self._send_json(200, {"ok": True, "count": len(quests), "updatedAt": record["updatedAt"]})
             except Exception as exc:
                 self._send_json(400, {"error": str(exc)})
             return
@@ -89,10 +106,9 @@ def main():
     print(f"   👉 http://{ip}:{PORT}?dm=master2026")
     print(f"\n   (Локально на ноутбуке: http://localhost:{PORT}?dm=master2026)")
     print("-" * 68)
-    print("💡 Для игры на улице (через мобильный интернет 4G/5G):")
-    print("   1. Перетащи файл index.html на https://app.netlify.com/drop")
-    print("   2. Или в DM-терминале нажми «Скачать готовый файл для жены»")
-    print("   3. Или раздай Wi-Fi точку доступа со своего телефона на ноутбук.")
+    print("💡 Для игры на улице по GPS (нужен HTTPS):")
+    print("   1. Перетащи index.html (или скачанный olha-quest.html) на https://app.netlify.com/drop")
+    print("   2. Или подними туннель: ssh -R 80:localhost:8080 nokey@localhost.run")
     print("=" * 68)
     print(f"Сервер слушает порт {PORT}... (Ctrl+C для остановки)\n")
 
