@@ -240,7 +240,7 @@
     }
     .wizard-track {
       display: flex;
-      width: 100%;
+      width: 300%;
       will-change: transform;
     }
     @media (prefers-reduced-motion: no-preference) {
@@ -249,8 +249,8 @@
       }
     }
     .wizard-page {
-      flex: 0 0 100%;
-      width: 100%;
+      flex: 0 0 33.333333%;
+      width: 33.333333%;
       min-width: 0;
       box-sizing: border-box;
       max-height: 66dvh;
@@ -623,10 +623,10 @@
               <p id="modal-node-task" class="text-xs sm:text-sm text-amber-50 mt-1 font-medium leading-snug"></p>
             </div>
 
-            <!-- Блок загадок (например, 4 загадки Тролля у арки) -->
+            <!-- Блок загадок (для всех 5 локаций) -->
             <div id="modal-riddles-box" class="hidden bg-purple-950/40 border border-purple-400/45 rounded-xl p-3 space-y-2">
               <div class="flex items-center justify-between gap-2">
-                <span class="text-[11px] font-scifi font-bold text-purple-300 uppercase">🧩 Загадки стража (подвох!)</span>
+                <span id="modal-riddles-header" class="text-[11px] font-scifi font-bold text-purple-300 uppercase">🧩 Загадки и тайны</span>
                 <button id="btn-toggle-riddle-answer" type="button" class="text-[11px] px-2 py-0.5 rounded bg-purple-900/80 hover:bg-purple-800 text-purple-100 border border-purple-400/40 font-semibold">
                   Показать ответ
                 </button>
@@ -680,6 +680,30 @@
             <div id="step3-outcome-banner" class="rounded-2xl p-3.5 border text-xs sm:text-sm">
               <div id="step3-outcome-title" class="font-scifi font-bold text-xs uppercase">РЕЗУЛЬТАТ ИСПЫТАНИЯ</div>
               <p id="step3-outcome-desc" class="mt-1 text-slate-200 leading-relaxed"></p>
+            </div>
+
+            <!-- БЛОК ИСКУПЛЕНИЯ ПРИ НЕУДАЧНОМ БРОСКЕ (ЕСЛИ БРОСОК < DC) -->
+            <div id="redemption-card" class="hidden bg-amber-950/75 border-2 border-amber-500/60 rounded-2xl p-3.5 space-y-2.5">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">⚖️</span>
+                <div>
+                  <div class="font-scifi font-bold text-amber-300 text-xs uppercase tracking-wide">
+                    Испытание Искупления (Выкуп у Судьбы)
+                  </div>
+                  <div class="text-[11px] text-amber-200/80">Бросок кубика не пробил DC, и замок закрыт! Но печать можно снять:</div>
+                </div>
+              </div>
+              <div class="bg-black/60 border border-amber-400/40 rounded-xl p-2.5 text-xs text-amber-100 font-medium leading-snug">
+                👉 <b>Задание от персонажа:</b> <span id="redemption-task-text">...</span>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                <button id="btn-redeem-challenge" type="button" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs uppercase shadow transition active:scale-95 flex items-center justify-center gap-1.5">
+                  <span>🤝</span> <span>Выкуп выполнен! (Снять печать)</span>
+                </button>
+                <button id="btn-redeem-reroll" type="button" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40 font-bold text-xs flex items-center justify-center gap-1.5">
+                  <span>🎲</span> <span>Сменить навык / Перебросить</span>
+                </button>
+              </div>
             </div>
 
             <!-- Запечатанный / Раскрытый Ларец -->
@@ -1711,7 +1735,14 @@
           quote: '«Хр-р-р... Тридцать восемь... тридцать девять... Ой, я не сплю! Я просто проверяю веки на герметичность! Это всё чай меня разморил...»'
         },
         lore: 'Говорят, этим летом ровно в три часа ночи небо над этим местом пролилось самым сильным звездопадом года. Двое путников сидели на стульчиках с тёплым чаем и считали огненные следы. Дозорный Тимми мирно уснул на посту, а истинная Хранительница Неба не сомкнула глаз и насчитала почти сорок падающих звёзд!',
-        task: 'Вспомните ту самую летнюю ночь со звездопадом! Разбудите сонного Звездочёта и скажите ему, кто на самом деле победил в подсчёте звёзд (и сколько примерно их было!).',
+        task: 'Вспомните ту самую летнюю ночь со звездопадом! Разгадайте 3 астрономические загадки Звездочёта и разбудите его своим решением!',
+        riddles: [
+          '1. Загадка ночного неба: Что падает целую ночь прямо в руки, но не оставляет синяков, способно исполнить сорок желаний, но усыпляет дозорного быстрее кружки чая?',
+          '2. Звёздная арифметика: На небе вспыхнуло ровно 40 звёзд. Пока Тимми считал первые 10 — чай был горячим. На 25-й его веки отяжелели, а на 30-й он уснул. Сколько процентов звёзд увидела бодрствующая Хранительница Неба?',
+          '3. Загадка о верном спутнике: Не имеет крыльев, но вмещает целую вселенную нужных вещей, готова отправиться с тобой на край света и каждый день хранит твои секреты. Что это за вещь?'
+        ],
+        riddleAnswer: '🌠 1. Падающие звёзды (метеоры)! • 2. Все 100% (все 40 звёзд, пока дозорный сопел на стульчике!) • 3. Верная сумка на каждый день!',
+        redemptionTask: 'Обнимите своего спутника на 5 секунд и назовите самое яркое желание на этот год вслух!',
         mystery: {
           title: 'Запечатанный Сундук Ночного Дозора',
           clue: 'Внутри таится нечто бездонное и надёжное на каждый день — верный спутник, готовый вместить все будущие находки сегодняшней прогулки...'
@@ -1745,8 +1776,11 @@
           }
         ],
         chosenPath: null,
+        chosenSkill: null,
+        customPlan: '',
         diceRoll: null,
         diceSuccess: null,
+        redemptionDone: false,
         claimed: false
       },
       {
@@ -1765,10 +1799,17 @@
           avatar: '🧔',
           name: 'Трактирщик Бьёрн «Пивная Борода»',
           role: 'Продавец билетов и сосед',
-          quote: '«Эй, путники! Раньше тут тени на мечах рубились, а теперь у меня главный аттракцион района — канатная переправа! Билет стоит две улыбки, а пока ждёте — вот вам кружечка, за ваше здоровье!»'
+          quote: '«Эй, путники! Раньше тут тени на мечах рубились, а теперь у меня главный аттракцион района — канатная переправа! Билет стоит две улыбки, но сначала проверьте свою смекалку на моих загадках!»'
         },
-        lore: 'Древние хроники гласят, что когда-то здесь гремела легендарная Битва Теней. Но века стёрли кровь и доспехи — теперь это знаменитое туристическое местечко с маленькой канатной дорогой. У самого входа примостился наш весёлый сосед-трактирщик: он неспешно продаёт билетики туристам, потягивает холодное пиво и травит байки о былых героях.',
-        task: 'Подойдите к той самой детской канатной дороге (зиплайну)! Прокатитесь или потяните трос на удачу — и договоритесь с попивающим пиво Трактирщиком о награде.',
+        lore: 'Древние хроники гласят, что когда-то здесь гремела легендарная Битва Теней. Но века стёрли кровь и доспехи — теперь это знаменитое весёлое местечко с маленькой канатной дорогой. У самого входа примостился наш весёлый сосед-трактирщик: он неспешно продаёт билетики туристам, потягивает холодное пиво и загадывает хитрые задачки гостям.',
+        task: 'Подойдите к детской канатной дороге (зиплайну), разгадайте 3 загадки Трактирщика о былых битвах и полётах, и договоритесь с ним о награде!',
+        riddles: [
+          '1. Загадка канатной переправы: Стальной дракон без костей натянут между двумя холмами. Если оседлать его спину — земля уйдёт из-под ног, а в лицо ударит ветер свободы. Что это за аттракцион?',
+          '2. Хмельная загадка Бьёрна: В трактире сидят викинги. Какой особый тёмный эль в Дании варят только к первому снегу и празднику Йоля, чтобы согреть душу и дать +5 к храбрости?',
+          '3. Загадка с подвохом: Что может начаться с детских качелей, продолжиться полётом на канате над полем теней, а закончиться звонким смехом и криком «Skål!»?'
+        ],
+        riddleAnswer: '⚔️ 1. Канатная дорога (зиплайн)! • 2. Рождественское пиво (Julebryg)! • 3. Отличная совместная прогулка в День Рождения!',
+        redemptionTask: 'Чокнитесь воображаемыми (или реальными) кружками со спутником и громко крикните датский тост: «Skål!»',
         mystery: {
           title: 'Личный Погребок Трактирщика',
           clue: 'От крышки веет зимней свежестью, пряным ароматом рождественских вечеров и лёгкой хмельной весёлостью. Руны сулят +5 к храбрости!'
@@ -1802,8 +1843,11 @@
           }
         ],
         chosenPath: null,
+        chosenSkill: null,
+        customPlan: '',
         diceRoll: null,
         diceSuccess: null,
+        redemptionDone: false,
         claimed: false
       },
       {
@@ -1822,10 +1866,17 @@
           avatar: '🧙‍♂️',
           name: 'Староста Гном Олли',
           role: 'Хранитель 138 садов (с 1976 года)',
-          quote: '«Тс-с! Не топчите морковку! Нашему городку в 2026 году исполняется ровно 50 лет! На востоке у нас улицы Фруктов, на западе — улицы Деревьев. Зажгите фонарик и найдите моего каменного брата!»'
+          quote: '«Тс-с! Не топчите морковку! Нашему городку в 2026 году исполняется ровно 50 лет! Отгадайте три тайны наших садов — и я открою поющую сокровищницу холма!»'
         },
         lore: 'Вы с Олей ещё никогда здесь не бывали — это тайное королевство прямо на южном краю Нестведа! Основанное в 1976 году, оно празднует в 2026-м свой 50-летний юбилей. На 138 крошечных участках вокруг холма Манглебьерг живут садовые гномы и сияют уютные лампочки. Говорят, по ночам улицы Фруктов и Овощей на востоке перешёптываются с улицами Деревьев на западе.',
-        task: 'Исследуйте незнакомый городок гномов: найдите хотя бы одного садового гнома, уютную гирлянду/фонарик у домика и посмотрите, в честь какого фрукта или дерева названа ближайшая улочка!',
+        task: 'Исследуйте незнакомый городок гномов: разгадайте 3 тайны старосты Олли, найдите хотя бы одного садового гнома или фонарик у домика!',
+        riddles: [
+          '1. Юбилейный шифр гномов: Городок заложен в 1976 году под холмом Манглебьерг. Если к году основания прибавить ровно полвека (50 лет) — какой юбилей празднуют 138 садов прямо сейчас?',
+          '2. Карта переулков: На востоке гномьего града улицы названы в честь сладких плодов (яблок, слив и ягод). А в честь кого названы прохладные тенистые улочки на западе?',
+          '3. Поющая шкатулка: У этого инструмента деревянное сердце и стальные лепестки. Он поёт хрустальным звоном от касания двух больших пальцев, словно капли весеннего дождя по крыше. Что поёт в руках?'
+        ],
+        riddleAnswer: '🍄 1. 2026 год (ровно 50 лет юбилей)! • 2. В честь деревьев (дубы, берёзы, сосны)! • 3. Музыкальная калимба!',
+        redemptionTask: 'Найдите глазами и покажите спутнику 1 садовый фонарик / гнома или назовите 2 любимых дерева!',
         mystery: {
           title: 'Юбилейная Шкатулка Гномов (1976)',
           clue: 'Стоит прислушаться к замку, как изнутри доносится чистый серебряный перезвон — словно весенние капли падают на звонкие металлические лепестки...'
@@ -1859,8 +1910,11 @@
           }
         ],
         chosenPath: null,
+        chosenSkill: null,
+        customPlan: '',
         diceRoll: null,
         diceSuccess: null,
+        redemptionDone: false,
         claimed: false
       },
       {
@@ -1879,10 +1933,17 @@
           avatar: '🏴‍☠️',
           name: 'Лоцман Мортен «Солёный Шёпот»',
           role: 'Последний смотритель причала',
-          quote: '«Опоздали вы, странники... Весь город ушёл на шхунах в море на Великий Фестиваль Прилива! Лавки заколочены, причалы пусты. Но вы же те самые всадники, что часто пролетают по мосту на стальных двухколёсных конях?»'
+          quote: '«Опоздали вы, странники... Весь город ушёл на шхунах в море на Великий Фестиваль Прилива! Но вы же те самые всадники с моста? Разгадайте три морские загадки причала — и стальной дар купцов ваш!»'
         },
         lore: 'Старинный портовый город в сумраке северных вод. Обычно здесь кипит торг: заморские купцы сгружают пряности, диковинные сосуды и байки о морских чудовищах. Но сегодня на узких улочках тихо и пусто — почти все горожане отплыли в открытый фьорд на таинственный Морской Фестиваль Фонарей. Лишь покачиваются на привязи пустые лодки да тускло горит фонарь старого Лоцмана у вашего велосипедного моста.',
-        task: 'Окиньте взглядом пустынную гавань, лодки и знакомый вам велосипедный мост. Вспомните самую красивую вашу велопрогулку здесь и поговорите с единственным оставшимся Лоцманом.',
+        task: 'Окиньте взглядом пустынную гавань, лодки и знакомый веломост. Разгадайте 3 загадки Лоцмана о ваших велопрогулках и морских сокровищах!',
+        riddles: [
+          '1. Загадка стальных скакунов: У них нет копыт, гривы и овса, но двое отважных всадников мчат на них через наш деревянный мост быстрее ветра на двух круглых колёсах. О каких скакунах речь?',
+          '2. Загадка морского сосуда: Не боится ледяного фьорда, не треснет от кипятка, одета в нержавеющие латы и имеет узкое горлышко, чтобы ни капли тепла не ушло в шторм. Что за вещь?',
+          '3. Загадка опустевшего порта: Купцы подняли паруса и уплыли на Морской Фестиваль Фонарей. Кто же остался сторожить старый причал и встречать прекрасную именинницу?'
+        ],
+        riddleAnswer: '⚓ 1. Ваши велосипеды! • 2. Металлическая бутылка с узким горлышком (термос)! • 3. Старый Лоцман Мортен (и её спутник)!',
+        redemptionTask: 'Посмотрите на воду залива, погрейте ладони в руках спутника на 5 секунд и назовите морскую страну мечты!',
         mystery: {
           title: 'Сундук Заморского Купца',
           clue: 'Ларец строг и прочен, как корабельная сталь, с узким горлышком у вершины — внутри таится согревающее тепло, не остывающее даже в морской шторм...'
@@ -1916,8 +1977,11 @@
           }
         ],
         chosenPath: null,
+        chosenSkill: null,
+        customPlan: '',
         diceRoll: null,
         diceSuccess: null,
+        redemptionDone: false,
         claimed: false
       },
       {
@@ -1936,17 +2000,18 @@
           avatar: '🧌',
           name: 'Тролль Громопуз',
           role: 'Страж Арки Мидгарда',
-          quote: '«СТОЯТЬ! Бородой Одина и молотом Тора клянусь — над моей аркой грохочут железные повозки, а подо мной пройдёт лишь та, кто отгадает все ЧЕТЫРЕ древние загадки Севера! (Подсказка: на первый взгляд они разные, но ответ один...)»'
+          quote: '«СТОЯТЬ! Бородой Одина и молотом Тора клянусь — над моей аркой грохочут железные повозки, а подо мной пройдёт лишь та, кто решится отгадать все ЧЕТЫРЕ древние загадки Севера!»'
         },
-        lore: 'Древний тракт, идущий прямо над глубокой каменной аркой. В скандинавских сагах такие врата между землями всегда стережёт мохнатый великан-тролль. Говорят, сам Локи научил его четырём запутанным загадкам — кажется, будто речь в них идёт о щитах, морях и горах Ётунхейма, но истинный ответ у всех один и тот же!',
-        task: 'Ответьте на 4 загадки Тролля (не бойтесь — проиграть здесь невозможно, а правильный ответ один на все четыре!).',
+        lore: 'Древний тракт, идущий прямо над глубокой каменной аркой. В скандинавских сагах такие врата между землями всегда стережёт мохнатый великан-тролль. Говорят, сам Локи научил его четырём запутанным загадкам — о щитах, морях, диванах и приключениях...',
+        task: 'Выслушайте 4 древние загадки Тролля под сводами каменной арки и назовите отгадки!',
         riddles: [
           '1. Что в Мидгарде состоит из двух могучих полушарий, как врата Вальгаллы, но никогда не пускает внутрь без разрешения?',
           '2. Оно круглее щита Тора и мягче перины Фрейи, но стоит ему уютно устроиться на диване — весь остальной мир замирает. Что это?',
           '3. Когда Тролль спрашивает у русскоговорящих путников в ноябре: «Где мы с вами иногда оказываемся по колено в приключениях?» — чьё это место?',
-          '4. Что объединяет три предыдущие загадки, звучит как тайное заклинание скальдов и гарантированно рассмешит Тролля до слёз?'
+          '4. Какое словосочетание из двух слов способно объединить все три предыдущие загадки, звучит как тайное заклинание скальдов и рассмешит Тролля до слёз?'
         ],
-        riddleAnswer: '🔥 ЕДИНЫЙ ОТВЕТ НА ВСЕ 4 ЗАГАДКИ: «ЖОПА ДАНИКА»! 😂',
+        riddleAnswer: '🔥 ОТВЕТ ТРОЛЛЯ: «ЖОПА ДАНИКА»! 😂 (Да-да, скандинавский юмор Локи: все 4 загадки были именно про неё!)',
+        redemptionTask: 'Повторите коронный ответ Троллю с самой хитрой улыбкой и дайте «пять» лапе Тролля (ладони спутника)!',
         mystery: {
           title: 'Сакральный Грааль Асгарда',
           clue: 'Сквозь золотую печать пробивается яркий цитрусовый аромат лайма и весёлое шипение пузырьков чистого зеландского счастья...'
@@ -1980,13 +2045,16 @@
           }
         ],
         chosenPath: null,
+        chosenSkill: null,
+        customPlan: '',
         diceRoll: null,
         diceSuccess: null,
+        redemptionDone: false,
         claimed: false
       }
     ];
 
-    const STORAGE_KEY = 'dr_olha_quest_state_v6';
+    const STORAGE_KEY = 'dr_olha_quest_state_v7';
     const HERO_STORAGE_KEY = 'dr_olha_hero_profile_v1';
     const MASTER_QUERY_KEY = 'dm';
     const MASTER_QUERY_SECRET = 'master2026';
@@ -2182,14 +2250,26 @@
         questLocations = data.quests.map((srvLoc) => {
           const prev = prevMap.get(srvLoc.id);
           if (shouldResetPlayer || !prev) {
-            return { ...srvLoc, claimed: Boolean(srvLoc.claimed), chosenPath: srvLoc.chosenPath ?? null, diceRoll: srvLoc.diceRoll ?? null, diceSuccess: srvLoc.diceSuccess ?? null };
+            return {
+              ...srvLoc,
+              claimed: Boolean(srvLoc.claimed),
+              chosenPath: srvLoc.chosenPath ?? null,
+              chosenSkill: srvLoc.chosenSkill ?? null,
+              customPlan: srvLoc.customPlan ?? '',
+              diceRoll: srvLoc.diceRoll ?? null,
+              diceSuccess: srvLoc.diceSuccess ?? null,
+              redemptionDone: srvLoc.redemptionDone ?? false
+            };
           }
           return {
             ...srvLoc,
             claimed: prev.claimed,
-            chosenPath: prev.chosenPath,
-            diceRoll: prev.diceRoll,
-            diceSuccess: prev.diceSuccess
+            chosenPath: prev.chosenPath ?? srvLoc.chosenPath ?? null,
+            chosenSkill: prev.chosenSkill ?? srvLoc.chosenSkill ?? null,
+            customPlan: prev.customPlan ?? srvLoc.customPlan ?? '',
+            diceRoll: prev.diceRoll ?? srvLoc.diceRoll ?? null,
+            diceSuccess: prev.diceSuccess ?? srvLoc.diceSuccess ?? null,
+            redemptionDone: prev.redemptionDone ?? srvLoc.redemptionDone ?? false
           };
         });
 
@@ -2304,7 +2384,7 @@
         { lat: 55.2054, lng: 11.7618, label: 'Изумрудная Роща', sub: 'Disc Golf Bane', svg: svgTrees },
         { lat: 55.2026, lng: 11.7604, label: 'Перепутье Дракона', sub: 'Земли Нестведа', svg: svgDragon },
         { lat: 55.1998, lng: 11.7565, label: 'Королевский Тракт', sub: 'Южный Путь', svg: svgCrest },
-        { lat: 55.1993, lng: 11.7478, label: 'Залив Шёпота Вод', sub: 'Suså Fjord', svg: svgWaves }
+        { lat: 55.2008, lng: 11.7498, label: 'Залив Шёпота Вод', sub: 'Suså Fjord', svg: svgWaves }
       ];
 
       regions.forEach((reg) => {
@@ -2366,13 +2446,20 @@
         map.on('click', (e) => spawnMapRipple(e.latlng, '#fde047'));
       }
 
-      // Точная центральная линия воды канала Suså (по координатам карты Нестведа)
+      // Точная центральная линия воды канала Suså (выверена по полигону воды OSM)
       const canalPath = [
-        [55.2038, 11.7482],
-        [55.2022, 11.7488],
-        [55.2008, 11.7489],
-        [55.1993, 11.7478],
-        [55.1978, 11.7468]
+        [55.2050, 11.7478],
+        [55.2043, 11.7483],
+        [55.2035, 11.7490],
+        [55.2028, 11.7494],
+        [55.2022, 11.7495], // Ровно под веломостом у Тёмной Гавани Аппенэса
+        [55.2016, 11.7497],
+        [55.2010, 11.7498],
+        [55.2004, 11.7495],
+        [55.1998, 11.7488],
+        [55.1992, 11.7478],
+        [55.1985, 11.7467],
+        [55.1978, 11.7456]
       ];
       const samplePolyline = (pts, u) => {
         const segs = pts.length - 1;
@@ -2394,11 +2481,11 @@
 
       const seagulls = Array.from({ length: 5 }, (_, i) => ({
         baseLat: 55.2016 + (i % 3) * 0.0007,
-        baseLng: 11.7484 + (i % 2) * 0.0006,
+        baseLng: 11.7494 + (i % 2) * 0.0005,
         phase: i * 1.3,
         speed: 0.45 + i * 0.07,
-        rx: 0.0009 + i * 0.00015,
-        ry: 0.0005 + i * 0.0001
+        rx: 0.0006 + i * 0.0001,
+        ry: 0.0004 + i * 0.0001
       }));
 
       const songbirds = Array.from({ length: 4 }, (_, i) => ({
@@ -2718,9 +2805,19 @@
     }
 
     // --- 9. ЕДИНЫЙ ГОРИЗОНТАЛЬНЫЙ 3-СТРАНИЧНЫЙ МАСТЕР КВЕСТА ---
-    function setWizardStep(stepIdx) {
+    function setWizardStep(stepIdx, immediate = false) {
       wizardStep = Math.max(0, Math.min(2, stepIdx));
-      document.getElementById('wizard-track').style.transform = `translateX(-${wizardStep * 100}%)`;
+      const track = document.getElementById('wizard-track');
+      if (track) {
+        if (immediate) {
+          track.style.transition = 'none';
+          track.style.transform = `translateX(-${(wizardStep * (100 / 3)).toFixed(4)}%)`;
+          void track.offsetHeight;
+          track.style.transition = '';
+        } else {
+          track.style.transform = `translateX(-${(wizardStep * (100 / 3)).toFixed(4)}%)`;
+        }
+      }
 
       [0, 1, 2].forEach((i) => {
         const tab = document.getElementById(`step-tab-${i}`);
@@ -2805,13 +2902,17 @@
         npcCard.classList.add('hidden');
       }
 
-      // Блок загадок (если есть у локации, как у Тролля)
+      // Блок загадок и испытаний
       const riddlesBox = document.getElementById('modal-riddles-box');
       const riddlesList = document.getElementById('modal-riddles-list');
       const riddleAnsBox = document.getElementById('modal-riddle-answer-box');
       const toggleAnsBtn = document.getElementById('btn-toggle-riddle-answer');
+      const riddlesHeader = document.getElementById('modal-riddles-header');
       if (Array.isArray(loc.riddles) && loc.riddles.length > 0) {
         riddlesBox.classList.remove('hidden');
+        if (riddlesHeader) {
+          riddlesHeader.textContent = loc.npc?.name ? `🧩 Загадки от: ${loc.npc.name}` : '🧩 Загадки и тайны локации';
+        }
         riddlesList.innerHTML = '';
         loc.riddles.forEach((rText) => {
           const p = document.createElement('p');
@@ -2889,11 +2990,16 @@
           <p class="text-xs text-slate-300/85 leading-snug mt-0.5">${approach.desc}</p>
         `;
         btn.onclick = () => {
-          loc.chosenSkill = approach.skill;
-          loc.chosenPath = approach.skill === 'Харизма' ? 0 : 1;
-          saveLocalState();
-          Sound.click();
-          renderWizardChoicesAndDice(loc);
+          if (loc.chosenSkill !== approach.skill) {
+            loc.chosenSkill = approach.skill;
+            loc.chosenPath = approach.skill === 'Харизма' ? 0 : 1;
+            loc.diceRoll = null;
+            loc.diceSuccess = null;
+            loc.redemptionDone = false;
+            saveLocalState();
+            Sound.click();
+            renderWizardChoicesAndDice(loc);
+          }
         };
         choicesContainer.appendChild(btn);
       });
@@ -2919,15 +3025,21 @@
           const bonus = getBonusForSkill(loc.chosenSkill);
           const total = loc.diceRoll + bonus;
           const success = loc.diceRoll === 20 || (loc.diceRoll > 1 && total >= dc);
-          statusEl.innerHTML = success
-            ? `<span class="text-emerald-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (против DC ${dc}) — ✨ УСПЕХ!</span>`
-            : `<span class="text-amber-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (против DC ${dc}) — 💨 Хитрый выкуп!</span>`;
+          if (success) {
+            statusEl.innerHTML = `<span class="text-emerald-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (против DC ${dc}) — ✨ УСПЕХ!</span>`;
+            nextBtn.innerHTML = '<span>К ларцу с победой!</span> →';
+            nextBtn.className = 'px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-black font-bold text-xs shadow transition active:scale-95';
+          } else {
+            statusEl.innerHTML = `<span class="text-amber-300 font-bold">Выпало ${loc.diceRoll} + ${bonus} (${loc.chosenSkill}) = ${total} (нужно DC ${dc}) — ⚠️ Замок запечатан!</span>`;
+            nextBtn.innerHTML = '<span>К выкупу у судьбы</span> →';
+            nextBtn.className = 'px-3 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 text-black font-bold text-xs shadow transition active:scale-95';
+          }
           nextBtn.classList.remove('hidden');
           wizardDice3D.targetNumber = loc.diceRoll;
           wizardDice3D.q = wizardDice3D.getTargetQuaternion(loc.diceRoll);
           wizardDice3D.draw(0, 1);
         } else {
-          statusEl.textContent = `Подход «${loc.chosenSkill}» выбран! Бросьте 3D-кубик, чтобы определить исход!`;
+          statusEl.textContent = `Подход «${loc.chosenSkill}» (+${getBonusForSkill(loc.chosenSkill)}) выбран! Бросьте 3D-кубик!`;
           nextBtn.classList.add('hidden');
         }
       }
@@ -2937,22 +3049,35 @@
       const outcomeBanner = document.getElementById('step3-outcome-banner');
       const outcomeTitle = document.getElementById('step3-outcome-title');
       const outcomeDesc = document.getElementById('step3-outcome-desc');
+      const redemptionCard = document.getElementById('redemption-card');
+      const redemptionTaskText = document.getElementById('redemption-task-text');
 
       const choice = loc.chosenPath !== null ? loc.choices?.[loc.chosenPath] : loc.choices?.[0];
       const planNote = loc.customPlan ? ` (Ваш план: «${loc.customPlan}»)` : '';
+
       if (loc.chosenSkill && loc.diceRoll !== null) {
         if (loc.diceSuccess) {
+          redemptionCard.classList.add('hidden');
           outcomeBanner.className = 'rounded-2xl p-3.5 border bg-emerald-950/50 border-emerald-500/45 text-xs sm:text-sm';
-          outcomeTitle.textContent = `✨ УСПЕХ ЧЕРЕЗ «${loc.chosenSkill.toUpperCase()}»!`;
+          outcomeTitle.textContent = `✨ БЛЕСТЯЩИЙ УСПЕХ ЧЕРЕЗ «${loc.chosenSkill.toUpperCase()}»!`;
           outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-emerald-300';
-          outcomeDesc.textContent = (choice?.outcome || 'Ваша находчивость сработала блестяще!') + planNote;
+          outcomeDesc.textContent = (choice?.outcome || 'Ваша находчивость и бросок сработали безупречно! Древний замок поддался!') + planNote;
+        } else if (loc.redemptionDone) {
+          redemptionCard.classList.add('hidden');
+          outcomeBanner.className = 'rounded-2xl p-3.5 border bg-teal-950/60 border-teal-400/50 text-xs sm:text-sm';
+          outcomeTitle.textContent = '✨ ВЫКУП ПРИНЯТ: ПЕЧАТЬ СНЯТА!';
+          outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-teal-300';
+          outcomeDesc.textContent = (choice?.failOutcome || 'Вы проявили истинную находчивость и выполнили испытание!') + ' Рунический барьер пал — ларец готов к открытию!' + planNote;
         } else {
-          outcomeBanner.className = 'rounded-2xl p-3.5 border bg-amber-950/50 border-amber-500/50 text-xs sm:text-sm';
-          outcomeTitle.textContent = '💨 ЧЕРЕЗ ТЕРНИИ К НАГРАДЕ!';
-          outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-amber-300';
-          outcomeDesc.textContent = (choice?.failOutcome || 'Бросок оказался сложным, но улыбка и поддержка Мастера всё равно открывают ларец!') + planNote;
+          redemptionCard.classList.remove('hidden');
+          redemptionTaskText.textContent = loc.redemptionTask || choice?.failOutcome || 'Выполните весёлое мини-действие в реальности или перебросьте кубик!';
+          outcomeBanner.className = 'rounded-2xl p-3.5 border bg-red-950/60 border-red-500/50 text-xs sm:text-sm';
+          outcomeTitle.textContent = '⚠️ БРОСОК НЕ ДОБРАЛ: ЛАРЕЦ ЗАПЕЧАТАН!';
+          outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-red-300';
+          outcomeDesc.textContent = `Кубик показал ${loc.diceRoll} + ${getBonusForSkill(loc.chosenSkill)} = ${loc.diceRoll + getBonusForSkill(loc.chosenSkill)} (против DC ${loc.dc || 10}). Магический замок остался закрыт! Выполните выкуп ниже или смените подход.` + planNote;
         }
       } else {
+        redemptionCard.classList.add('hidden');
         outcomeBanner.className = 'rounded-2xl p-3.5 border bg-slate-900/60 border-slate-700 text-xs sm:text-sm';
         outcomeTitle.textContent = 'ОЖИДАНИЕ РЕШЕНИЯ';
         outcomeTitle.className = 'font-scifi font-bold text-xs uppercase text-slate-300';
@@ -2980,16 +3105,26 @@
         claimBtn.disabled = true;
         claimBtn.className = 'flex-1 py-3 px-4 rounded-xl bg-emerald-900/50 text-emerald-200 border border-emerald-500/40 font-bold text-xs uppercase tracking-wider cursor-not-allowed opacity-80 flex items-center justify-center gap-2';
       } else {
-        lootHeader.innerHTML = '<span>🔒</span> ЗАПЕЧАТАННЫЙ ЛАРЕЦ';
-        lootBadge.textContent = 'СЮРПРИЗ СКРЫТ';
-        lootBadge.className = 'text-xs font-bold text-amber-300 font-mono';
-        lootIcon.textContent = '🗝️';
+        const canClaim = loc.diceSuccess || loc.redemptionDone;
+        lootHeader.innerHTML = canClaim ? '<span>🔓</span> ЛАРЕЦ РАСПЕЧАТАН!' : '<span>🔒</span> ЗАПЕЧАТАННЫЙ ЛАРЕЦ';
+        lootBadge.textContent = canClaim ? 'ГОТОВ К ВСКРЫТИЮ' : (loc.diceRoll !== null ? 'ЗАБЛОКИРОВАН РУНАМИ' : 'СЮРПРИЗ СКРЫТ');
+        lootBadge.className = canClaim ? 'text-xs font-bold text-emerald-300 font-mono' : 'text-xs font-bold text-amber-300 font-mono';
+        lootIcon.textContent = canClaim ? '🎁' : '🗝️';
         lootName.textContent = loc.mystery?.title || 'Тайный Артефакт';
-        lootDesc.textContent = loc.mystery?.clue || 'Распечатайте замок, чтобы узнать, какой подарок внутри!';
-        lootBox.className = 'bg-gradient-to-r from-amber-950/60 via-slate-900/80 to-black/75 border border-amber-500/45 rounded-2xl p-4 transition-all';
-        claimBtn.disabled = false;
-        claimBtn.innerHTML = '<span>🗝️</span> Вскрыть ларец и забрать сюрприз!';
-        claimBtn.className = 'flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg transition active:scale-95 flex items-center justify-center gap-2';
+        lootDesc.textContent = canClaim ? 'Замок открыт! Распахните крышку и получите подарок!' : (loc.mystery?.clue || 'Распечатайте замок, чтобы узнать, какой подарок внутри!');
+        lootBox.className = canClaim
+          ? 'bg-gradient-to-r from-emerald-950/60 via-slate-900/80 to-black/75 border border-emerald-500/60 rounded-2xl p-4 transition-all'
+          : 'bg-gradient-to-r from-amber-950/60 via-slate-900/80 to-black/75 border border-amber-500/45 rounded-2xl p-4 transition-all';
+
+        if (canClaim) {
+          claimBtn.disabled = false;
+          claimBtn.innerHTML = '<span>🗝️</span> Вскрыть ларец и забрать сюрприз!';
+          claimBtn.className = 'flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-black font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg transition active:scale-95 flex items-center justify-center gap-2';
+        } else {
+          claimBtn.disabled = true;
+          claimBtn.innerHTML = '<span>🔒</span> Ларец заперт (требуется победа или выкуп)';
+          claimBtn.className = 'flex-1 py-3 px-4 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-400 font-bold text-xs uppercase tracking-wider cursor-not-allowed opacity-60 flex items-center justify-center gap-2';
+        }
       }
     }
 
@@ -3046,6 +3181,11 @@
         showToast('🎲', 'Сначала сделайте выбор и бросьте 3D-кубик!');
         return;
       }
+      if (!activeLocation.diceSuccess && !activeLocation.redemptionDone) {
+        Sound.slam();
+        showToast('🔒', 'Замок запечатан! Выполните выкуп выше или перебросьте кубик!');
+        return;
+      }
 
       activeLocation.claimed = true;
       saveLocalState();
@@ -3066,6 +3206,28 @@
           openGrandFinale();
         }, 1800);
       }
+    };
+
+    // Блок искупления при неудачном броске кубика
+    document.getElementById('btn-redeem-challenge').onclick = () => {
+      if (!activeLocation || activeLocation.claimed) return;
+      activeLocation.redemptionDone = true;
+      saveLocalState();
+      Sound.fanfare();
+      showToast('✨', 'Выкуп принят! Печать с ларца снята!');
+      renderWizardLootAndOutcome(activeLocation);
+    };
+
+    document.getElementById('btn-redeem-reroll').onclick = () => {
+      if (!activeLocation || activeLocation.claimed) return;
+      activeLocation.diceRoll = null;
+      activeLocation.diceSuccess = null;
+      activeLocation.redemptionDone = false;
+      saveLocalState();
+      Sound.click();
+      setWizardStep(1);
+      renderWizardChoicesAndDice(activeLocation);
+      showToast('🎲', 'Смените подход или перебросьте кубик!');
     };
 
     // Быстрое редактирование текущей точки (только DM)
@@ -3936,6 +4098,17 @@
       await syncFromServer(true);
       applySessionUI();
       initMap();
+
+      // Быстрое тестирование / переход по прямой ссылке (?quest=loc-troense&step=1&near=1)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('near')) sessionConfig.requireProximity = false;
+      const testQuestId = urlParams.get('quest');
+      if (testQuestId) {
+        openQuestDetail(testQuestId);
+        const s = parseInt(urlParams.get('step'), 10);
+        if (!isNaN(s)) setWizardStep(s);
+      }
+
       // Фоновый опрос сервера (чтобы правки Мастера прилетали на телефон игрока вживую!)
       if (window.location.protocol.startsWith('http')) {
         setInterval(() => {
