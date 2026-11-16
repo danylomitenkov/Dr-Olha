@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Хроники Нестведа • D&D Квест-Приключение</title>
+
+  <!-- Leaflet CSS & JS для реальной интерактивной карты -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+
+  <!-- Google Fonts: Атмосферные шрифты D&D и Detroit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Jost:wght@400;500;600;700&family=MedievalSharp&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --gold-primary: #d4af37;
+      --gold-glow: rgba(212, 175, 55, 0.4);
+      --detroit-blue: #00d2ff;
+      --detroit-blue-glow: rgba(0, 210, 255, 0.35);
+      --parchment: #f4ecd8;
+    }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background-color: #0d0f14;
+      color: #e2e8f0;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .font-fantasy { font-family: 'Cinzel', serif; }
+    .font-medieval { font-family: 'MedievalSharp', cursive; }
+    .font-scifi { font-family: 'Orbitron', sans-serif; }
+
+    /* Полноэкранная карта */
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: #11141a;
+    }
+
+    /* Фэнтези-фильтр пергамента для слоя карты */
+    .map-parchment-mode .leaflet-tile-pane {
+      filter: sepia(0.65) contrast(1.15) brightness(0.92) hue-rotate(-15deg);
+    }
+
+    /* Спутниковый режим */
+    .map-satellite-mode .leaflet-tile-pane {
+      filter: saturate(1.1) contrast(1.05);
+    }
+
+    /* Стилизация маркеров Leaflet */
+    .quest-marker-icon {
+      background: none;
+      border: none;
+    }
+
+    .marker-pin-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .marker-pin-wrap:hover, .marker-pin-wrap.selected {
+      transform: scale(1.22) translateY(-4px);
+    }
+
+    .marker-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      border: 2px solid #ffffff;
+      position: relative;
+    }
+
+    .marker-pulse-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid var(--gold-primary);
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      50% { transform: scale(1.35); opacity: 0; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+
+    /* Маркер игрока (Героиня) */
+    .player-marker {
+      width: 32px;
+      height: 32px;
+      background: radial-gradient(circle, #38bdf8 20%, #0284c7 80%);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #0ea5e9, 0 0 8px #ffffff;
+      animation: player-pulse 1.8s infinite;
+    }
+
+    @keyframes player-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { box-shadow: 0 0 0 16px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+
+    /* Карточки в стиле Detroit: Become Human */
+    .glass-detroit {
+      background: linear-gradient(135deg, rgba(16, 21, 30, 0.92) 0%, rgba(9, 12, 18, 0.96) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.75), inset 0 0 15px rgba(0, 210, 255, 0.08);
+    }
+
+    .detroit-choice-card {
+      position: relative;
+      background: rgba(18, 26, 38, 0.75);
+      border-left: 4px solid #0284c7;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .detroit-choice-card:hover {
+      background: rgba(14, 165, 233, 0.18);
+      border-left-color: #38bdf8;
+      transform: translateX(4px);
+    }
+
+    .detroit-choice-card.selected {
+      background: rgba(14, 165, 233, 0.28);
+      border-left-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+    }
+
+    /* Мобильный скроллбар */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.4); border-radius: 4px; }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col select-none">
+
+  <!-- ВЕРХНЯЯ НАВИГАЦИОННАЯ ПАНЕЛЬ -->
+  <header class="absolute top-0 left-0 right-0 z-20 p-3 md:p-4 pointer-events-none">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Заголовок / Профиль Героини -->
+      <div class="glass-detroit pointer-events-auto rounded-2xl px-4 py-2.5 flex items-center gap-3 border border-amber-500/30 shadow-2xl">
+        <div class="relative">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 flex items-center justify-center text-xl shadow-lg border border-amber-200">
+            👑
+          </div>
+          <span id="player-status-dot" class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-black animate-ping"></span>
+          <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-black"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-fantasy font-bold text-sm md:text-base text-amber-200 tracking-wider">КВЕСТ ОЛЬГИ</h1>
+            <span class="text-[10px] font-scifi bg-sky-950 text-sky-400 px-1.5 py-0.5 rounded border border-sky-600/40">D&D 5e</span>
+          </div>
+          <p class="text-[11px] text-slate-300 font-medium">Troensevej • Næstved</p>
+        </div>
+      </div>
+
+      <!-- Счетчики и Быстрые Кнопки -->
+      <div class="flex items-center gap-2 pointer-events-auto">
+        <!-- Счетчик сокровищ -->
+        <button id="btn-open-inventory" class="glass-detroit rounded-2xl px-3 py-2 flex items-center gap-2 border border-amber-500/40 hover:border-amber-400 transition active:scale-95">
+          <span class="text-base">🎁</span>
+          <div class="text-left">
+            <div class="text-[9px] uppercase tracking-wider text-amber-300 font-bold">Инвентарь</div>
+            <div id="stat-loot-progress" class="text-xs font-scifi font-bold text-emerald-400">0 / 7</div>
+          </div>
+        </button>
+
+        <!-- Кубик d20 -->
+        <button id="btn-roll-d20" class="glass-detroit rounded-2xl px-3 py-2 flex items-center gap-2 border border-sky-500/40 hover:border-sky-400 transition active:scale-95 group">
+          <span class="text-xl group-hover:rotate-45 transition-transform duration-300">🎲</span>
+          <div class="text-left hidden sm:block">
+            <div class="text-[9px] uppercase tracking-wider text-sky-300 font-bold">d20 Бросок</div>
+            <div id="quick-d20-val" class="text-xs font-scifi font-bold text-white">--</div>
+          </div>
+        </button>
+
+        <!-- Переключатель слоя карты (Спутник / Пергамент) -->
+        <button id="btn-toggle-map-layer" title="Сменить стиль карты" class="glass-detroit w-10 h-10 rounded-2xl flex items-center justify-center text-lg border border-slate-700 hover:border-amber-400 transition active:scale-95">
+          🗺️
+        </button>
+
+        <!-- Кнопка GPS (Мое положение) -->
+        <button id="btn-locate-me" title="Мое местоположение на карте" class="glass-detroit w-10 h-10 rounded-2xl flex items-center justify-center text-lg border border-slate-700 hover:border-sky-400 transition active:scale-95 text-sky-400">
+          📍
+        </button>
+
+        <!-- Кнопка Мастера Игры (DM Terminal) - скрыта для игрока, доступна по ?dm=1 или тройному клику по короне -->
+        <button id="btn-open-terminal" title="DM Терминал / Редактор квестов" class="hidden glass-detroit w-10 h-10 rounded-2xl flex items-center justify-center text-lg border border-red-700/60 hover:border-red-400 text-red-400 transition active:scale-95">
+          🗝️
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- КОНТЕЙНЕР КАРТЫ LEAFLET -->
+  <main class="flex-1 relative w-full h-full">
+    <div id="map"></div>
+
+    <!-- Всплывающий компас / подсказка приближения к цели -->
+    <div id="proximity-banner" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-20 glass-detroit border border-amber-400 rounded-full px-5 py-2 flex items-center gap-3 shadow-2xl animate-bounce">
+      <span class="text-xl">✨</span>
+      <span id="proximity-text" class="text-xs md:text-sm font-bold text-amber-200">Вы приблизились к реликвии! Менее 40 метров</span>
+    </div>
+  </main>
+
+  <!-- НИЖНЯЯ ПАНЕЛЬ С КАРТОЧКАМИ КВЕСТОВ (ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ) -->
+  <footer class="absolute bottom-3 left-0 right-0 z-20 pointer-events-none px-3">
+    <div class="max-w-5xl mx-auto flex flex-col gap-2">
+      
+      <!-- Быстрый выбор задания -->
+      <div id="quests-scroll-track" class="pointer-events-auto flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <!-- Карточки генерируются скриптом -->
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- МОДАЛКА: DETROIT BECOME HUMAN / ИССЛЕДОВАНИЕ УЗЛА КВЕСТА -->
+  <div id="modal-quest-detail" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-md hidden flex items-end md:items-center justify-center p-0 md:p-4 transition-opacity">
+    <div class="glass-detroit w-full max-w-xl max-h-[90vh] rounded-t-3xl md:rounded-3xl border border-cyan-500/40 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Шапка квестового узла -->
+      <div class="p-4 md:p-5 border-b border-cyan-500/30 flex items-center justify-between bg-black/40">
+        <div class="flex items-center gap-3">
+          <div id="modal-node-icon" class="w-12 h-12 rounded-2xl bg-cyan-950/80 border border-cyan-400 flex items-center justify-center text-2xl shadow-lg">
+            🏰
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="modal-node-badge" class="text-[10px] font-scifi font-bold text-cyan-300 uppercase tracking-widest bg-cyan-950/90 px-2 py-0.5 rounded border border-cyan-500/40">УЗЕЛ #01</span>
+              <span id="modal-node-distance" class="text-[11px] text-amber-300 font-mono font-semibold">📍 120м</span>
+            </div>
+            <h2 id="modal-node-title" class="font-fantasy text-base md:text-lg font-bold text-white tracking-wide mt-0.5">Цитадель Начала</h2>
+          </div>
+        </div>
+        <button id="btn-close-quest-modal" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-lg">&times;</button>
+      </div>
+
+      <!-- Тело квеста: Лор, Локация, Лут и Развилки -->
+      <div class="p-4 md:p-5 overflow-y-auto space-y-4 text-xs md:text-sm">
+        
+        <!-- Реальное местоположение -->
+        <div class="bg-black/50 border border-slate-700/60 rounded-xl p-3 flex items-start gap-2.5">
+          <span class="text-base text-cyan-400 shrink-0">🧭</span>
+          <div>
+            <div class="text-[10px] font-scifi uppercase tracking-wider text-slate-400 font-bold">Ориентир на местности:</div>
+            <p id="modal-node-real" class="text-cyan-200 font-medium text-xs mt-0.5">Troensevej 9, Næstved</p>
+          </div>
+        </div>
+
+        <!-- Фэнтезийный лор -->
+        <div class="text-slate-300 leading-relaxed bg-slate-900/40 border border-slate-800 rounded-xl p-3.5" id="modal-node-lore">
+          Описание локации...
+        </div>
+
+        <!-- Награда из Списка Желаний (Вишлист) -->
+        <div class="bg-gradient-to-r from-amber-950/50 via-slate-900/60 to-black/60 border border-amber-500/40 rounded-xl p-3.5">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-scifi uppercase font-bold text-amber-400 flex items-center gap-1.5">
+              <span>🎁</span> РЕЛИКВИЯ ИЗ СПИСКА ЖЕЛАНИЙ
+            </span>
+            <span id="modal-node-claim-badge" class="text-[10px] font-bold text-slate-400 font-mono">НЕ ПОЛУЧЕНО</span>
+          </div>
+          <div id="modal-node-loot-name" class="font-bold text-amber-100 text-sm md:text-base">Сумка Странника (Everyday Bag)</div>
+          <p id="modal-node-loot-desc" class="text-[11px] text-amber-200/70 mt-1">Вместилище для всех артефактов.</p>
+        </div>
+
+        <!-- Развилки Detroit: Become Human -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-scifi font-bold text-cyan-400 uppercase tracking-wider">Дерево Решений (Flowchart)</span>
+            <span class="text-[10px] text-slate-400">Выберите действие героини</span>
+          </div>
+          <div id="modal-choices-list" class="space-y-2">
+            <!-- Динамические развилки -->
+          </div>
+        </div>
+
+        <!-- Блок результата выбора -->
+        <div id="modal-choice-outcome" class="hidden bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-3 text-xs text-emerald-200 animate-in fade-in">
+          <div class="font-bold font-scifi text-emerald-300 flex items-center gap-1.5">
+            <span>⚡</span> ПОСЛЕДСТВИЕ ВЫБОРА:
+          </div>
+          <p id="modal-choice-outcome-text" class="mt-1 text-slate-200 leading-normal"></p>
+        </div>
+
+      </div>
+
+      <!-- Подвал: Кнопка взятия артефакта -->
+      <div class="p-4 border-t border-cyan-500/30 bg-black/50 flex items-center justify-between gap-3">
+        <button id="btn-modal-roll-check" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-600 transition">
+          <span>🎲</span> Проверка d20
+        </button>
+        <button id="btn-modal-claim" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold text-xs uppercase tracking-wider shadow-lg transition active:scale-98 flex items-center justify-center gap-2">
+          <span>🏆</span> Забрать артефакт в инвентарь
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- МОДАЛКА: ИНВЕНТАРЬ И ЛИСТ ПЕРСОНАЖА -->
+  <div id="modal-inventory" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-3 md:p-6">
+    <div class="glass-detroit w-full max-w-2xl max-h-[88vh] rounded-3xl border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden">
+      
+      <div class="p-4 md:p-5 border-b border-amber-500/30 flex items-center justify-between bg-black/40">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎒</span>
+          <div>
+            <h2 class="font-fantasy font-bold text-lg text-amber-200">ИНВЕНТАРЬ И ХРОНИКИ</h2>
+            <p class="text-[11px] text-amber-300/70">Найденные артефакты из списка подарков</p>
+          </div>
+        </div>
+        <button id="btn-close-inventory" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-lg">&times;</button>
+      </div>
+
+      <div class="p-4 md:p-5 overflow-y-auto space-y-4">
+        
+        <!-- Характеристики Героини -->
+        <div class="grid grid-cols-3 gap-2.5 text-center">
+          <div class="bg-black/40 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] font-scifi uppercase text-amber-400">Харизма</div>
+            <div class="text-base font-bold text-white mt-0.5">+3</div>
+            <div class="text-[9px] text-slate-400">Очарование</div>
+          </div>
+          <div class="bg-black/40 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] font-scifi uppercase text-sky-400">Смекалка</div>
+            <div class="text-base font-bold text-white mt-0.5">+2</div>
+            <div class="text-[9px] text-slate-400">Интеллект</div>
+          </div>
+          <div class="bg-black/40 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] font-scifi uppercase text-emerald-400">Ловкость</div>
+            <div class="text-base font-bold text-white mt-0.5">+2</div>
+            <div class="text-[9px] text-slate-400">Грация</div>
+          </div>
+        </div>
+
+        <!-- Сетка артефактов из списка желаний -->
+        <div>
+          <div class="text-xs font-scifi font-bold text-amber-300 uppercase tracking-wider mb-2.5">Реликвии вишлиста:</div>
+          <div id="inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Динамические карточки артефактов -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- МОДАЛКА / ПАНЕЛЬ: DM ТЕРМИНАЛ (МАСТЕР ИГРЫ) -->
+  <div id="modal-terminal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-2 md:p-6">
+    <div class="bg-[#121620] border-2 border-red-500/50 w-full max-w-3xl max-h-[92vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-200">
+      
+      <!-- Шапка терминала -->
+      <div class="p-4 bg-red-950/40 border-b border-red-500/40 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">🗝️</span>
+          <div>
+            <h2 class="font-scifi font-bold text-base text-red-200 tracking-wider">DM TERMINAL • УПРАВЛЕНИЕ КВЕСТОМ</h2>
+            <p class="text-[10px] text-red-300/70 font-mono">Редактирование локаций, добавление точек и симулятор GPS</p>
+          </div>
+        </div>
+        <button id="btn-close-terminal" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-lg">&times;</button>
+      </div>
+
+      <!-- Вкладки терминала -->
+      <div class="flex items-center border-b border-slate-800 bg-black/40 px-4 text-xs font-scifi">
+        <button id="tab-btn-add" class="py-2.5 px-4 text-cyan-400 border-b-2 border-cyan-400 font-bold">Добавить точку</button>
+        <button id="tab-btn-list" class="py-2.5 px-4 text-slate-400 hover:text-white">Все локации (<span id="dm-loc-count">0</span>)</button>
+        <button id="tab-btn-gps" class="py-2.5 px-4 text-slate-400 hover:text-white">GPS Симулятор</button>
+        <button id="tab-btn-json" class="py-2.5 px-4 text-slate-400 hover:text-white">Импорт / Экспорт JSON</button>
+      </div>
+
+      <!-- Тело терминала -->
+      <div class="p-4 md:p-5 overflow-y-auto flex-1 text-xs space-y-4">
+        
+        <!-- Вкладка 1: Форма добавления точки -->
+        <div id="tab-content-add" class="space-y-3">
+          <div class="bg-black/50 p-3 rounded-xl border border-slate-800 text-[11px] text-amber-300/90 flex items-center gap-2">
+            <span>💡</span>
+            <span>Лайфхак: Вы можете кликнуть в любое место на карте за пределами терминала, чтобы скопировать точные координаты!</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Фэнтезийное имя локации:</label>
+              <input type="text" id="dm-input-name" placeholder="Напр. Тайный Исток Фей" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2.5 text-white focus:border-cyan-400 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Реальный ориентир / адрес:</label>
+              <input type="text" id="dm-input-real" placeholder="Напр. Беседка у ручья Æblelunden" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2.5 text-white focus:border-cyan-400 focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Широта (Lat):</label>
+              <input type="number" step="0.000001" id="dm-input-lat" value="55.206357" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Долгота (Lng):</label>
+              <input type="number" step="0.000001" id="dm-input-lng" value="11.767954" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Иконка:</label>
+              <input type="text" id="dm-input-icon" value="✨" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white text-center">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Подарок из списка:</label>
+              <select id="dm-input-loot" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2.5 text-white focus:border-cyan-400 focus:outline-none">
+                <option value="Everyday Bag">Everyday Bag (Сумка на каждый день)</option>
+                <option value="Kalimba">Kalimba (Калимба Небесных Ветров)</option>
+                <option value="Рождественское пиво (Julebryg)">Рождественское пиво (Эликсир Храбрости)</option>
+                <option value="Metal bottle with narrow bottleneck">Металлическая бутылка с узким горлышком</option>
+                <option value="Бутылка Faxe Kondi">Бутылка Faxe Kondi (Эликсир Счастья)</option>
+                <option value="Секретный праздничный сюрприз">Секретный праздничный сюрприз</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 font-mono mb-1">Тип узла:</label>
+              <select id="dm-input-type" class="w-full bg-black/60 border border-slate-700 rounded-lg p-2.5 text-white">
+                <option value="Квест">Обычный квест</option>
+                <option value="Тайник">Скрытый тайник</option>
+                <option value="Финал">Финальный босс</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 font-mono mb-1">Фэнтезийная предыстория / Логика задания:</label>
+            <textarea id="dm-input-lore" rows="2" placeholder="Что происходит на локации, кого встречает героиня..." class="w-full bg-black/60 border border-slate-700 rounded-lg p-2 text-white"></textarea>
+          </div>
+
+          <button id="dm-btn-save-point" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 font-bold text-white uppercase tracking-wider shadow-lg">
+            💾 Добавить точку на карту и сохранить
+          </button>
+        </div>
+
+        <!-- Вкладка 2: Список всех точек с удалением -->
+        <div id="tab-content-list" class="hidden space-y-2">
+          <div id="dm-locations-rendered-list" class="space-y-2">
+            <!-- Динамический список -->
+          </div>
+        </div>
+
+        <!-- Вкладка 3: GPS Симулятор -->
+        <div id="tab-content-gps" class="hidden space-y-3">
+          <div class="bg-black/50 p-3.5 rounded-xl border border-slate-800">
+            <h4 class="font-bold text-sky-300 font-scifi mb-1">Тестирование квеста без выхода на улицу</h4>
+            <p class="text-[11px] text-slate-400">Вы можете «телепортировать» маркер игрока к любой точке, чтобы проверить триггеры приближения и открытия карточек.</p>
+          </div>
+          <div id="dm-teleport-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <!-- Кнопки быстрой телепортации -->
+          </div>
+          <button id="btn-toggle-auto-walk" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 border border-sky-500/40 font-bold">
+            🚶 Запустить демо-прогулку по маршруту
+          </button>
+        </div>
+
+        <!-- Вкладка 4: JSON Импорт / Экспорт -->
+        <div id="tab-content-json" class="hidden space-y-3">
+          <p class="text-slate-400 text-[11px]">Скопируйте этот JSON, чтобы передать мне в чат или сохранить резервную копию:</p>
+          <textarea id="dm-json-area" rows="8" class="w-full bg-black/80 font-mono text-[11px] text-emerald-400 p-3 rounded-xl border border-slate-800"></textarea>
+          <div class="flex gap-2">
+            <button id="btn-copy-json" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold">Скопировать JSON</button>
+            <button id="btn-apply-json" class="flex-1 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-bold">Применить из поля</button>
+            <button id="btn-reset-defaults" class="px-3 py-2 rounded-lg bg-red-900/60 hover:bg-red-800 text-red-200">Сброс к дефолту</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Подвал терминала -->
+      <div class="p-3 bg-black/60 border-t border-slate-800 flex items-center justify-between text-[11px]">
+        <span class="text-slate-400 font-mono">Troensevej 9 • Næstved, DK</span>
+        <button id="btn-reset-player-progress" class="text-amber-400 hover:underline">
+          🔄 Сбросить прогресс игрока (перед стартом)
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- СКРИПТ: ДВИЖОК КВЕСТА, LEAFLET И ЗВУКИ -->
+  <script>
+    // --- 1. АВТОНОМНЫЙ ЗВУКОВОЙ СИНТЕЗАТОР (WEB AUDIO API) ---
+    const Sound = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      beep(freq, type = 'sine', duration = 0.1, gain = 0.15) {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          g.gain.setValueAtTime(gain, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      },
+      click() { this.beep(600, 'sine', 0.06, 0.08); },
+      chime() {
+        setTimeout(() => this.beep(523.25, 'triangle', 0.25, 0.2), 0);
+        setTimeout(() => this.beep(659.25, 'triangle', 0.35, 0.2), 120);
+        setTimeout(() => this.beep(783.99, 'triangle', 0.45, 0.25), 240);
+      },
+      fanfare() {
+        setTimeout(() => this.beep(440, 'triangle', 0.15, 0.2), 0);
+        setTimeout(() => this.beep(554.37, 'triangle', 0.15, 0.2), 120);
+        setTimeout(() => this.beep(659.25, 'triangle', 0.25, 0.2), 240);
+        setTimeout(() => this.beep(880, 'triangle', 0.5, 0.3), 360);
+      },
+      dice() {
+        for (let i = 0; i < 7; i++) {
+          setTimeout(() => this.beep(160 + Math.random() * 260, 'square', 0.04, 0.06), i * 40);
+        }
+      }
+    };
+
+    // --- 2. БАЗОВЫЕ ДАННЫЕ КВЕСТОВ ДЛЯ NÆSTVED (TROENSEVEJ 9) ---
+    const DEFAULT_LOCATIONS = [
+      {
+        id: 'loc-home',
+        badge: 'СТАРТ',
+        name: 'Цитадель Первопроходцев',
+        realAddress: 'Troensevej 9, 4700 Næstved',
+        lat: 55.206357,
+        lng: 11.767954,
+        icon: '🏰',
+        type: 'База',
+        lore: 'Родные стены, откуда начинается великое странствие в честь дня рождения. Здесь в древнем свитке начертан маршрут по чертогам Нестведа.',
+        loot: {
+          name: 'Сумка Странника (Everyday Bag)',
+          desc: 'Вместилище для всех реликвий и напитков, найденных в чертогах Нестведа. Надевается перед выходом.',
+          wishItem: 'Everyday Bag'
+        },
+        choices: [
+          {
+            tag: '[ПОДГОТОВКА]',
+            title: 'Экипировать сумку и проверить снаряжение',
+            skill: 'Смекалка',
+            desc: 'Взять с собой заряженный телефон, хорошее настроение и одеться по погоде.',
+            outcome: 'Вы идеально экипированы к походу! Первые метки на карте загораются золотым светом.'
+          },
+          {
+            tag: '[ИНТУИЦИЯ]',
+            title: 'Загадать первое желание дня',
+            skill: 'Сердце',
+            desc: 'Сделать глубокий вдох и довериться попутному датскому ветру.',
+            outcome: 'Магия праздника наполняет воздух! Бонус +2 ко всем броскам кубика.'
+          }
+        ],
+        claimed: false
+      },
+      {
+        id: 'loc-discgolf',
+        badge: 'КВЕСТ 1',
+        name: 'Изумрудная Роща Ветров',
+        realAddress: 'Næstved Disc Golf Bane (парк у Troensevej)',
+        lat: 55.206100,
+        lng: 11.762800,
+        icon: '🎵',
+        type: 'Квест',
+        lore: 'Широкая зеленая поляна среди вековых деревьев. Здесь живет дух музыки, стерегущий звонкие небесные ноты.',
+        loot: {
+          name: 'Калимба Небесных Ветров (Kalimba)',
+          desc: 'Музыкальный инструмент сирен. Ее кристальный звон рассеивает любую усталость и морок.',
+          wishItem: 'Kalimba'
+        },
+        choices: [
+          {
+            tag: '[МУЗЫКА]',
+            title: 'Сыграть 3 чистые ноты на ветру',
+            skill: 'Харизма (Сложность 11)',
+            desc: 'Извлечь из калимбы нежную мелодию прямо среди деревьев.',
+            outcome: 'Звук чист, как хрустальный ручей! Дух рощи приветствует вас и благословляет поход.'
+          },
+          {
+            tag: '[ВНИМАТЕЛЬНОСТЬ]',
+            title: 'Найти спрятанный знак у корзины диск-гольфа',
+            skill: 'Внимательность (Сложность 12)',
+            desc: 'Осмотреть металлические ориентиры парка в поисках руны.',
+            outcome: 'Среди листьев блеснула золотая метка! Следующий алтарь нанесен на карту.'
+          }
+        ],
+        claimed: false
+      },
+      {
+        id: 'loc-beer',
+        badge: 'КВЕСТ 2',
+        name: 'Бастион Северного Мужества',
+        realAddress: 'Legeplads / Сквер южнее Dyssegårdsvej',
+        lat: 55.203300,
+        lng: 11.765100,
+        icon: '🍺',
+        type: 'Квест',
+        lore: 'Укромный чертог среди холмов. Здесь хранится легендарный датский рождественский эль северных воинов.',
+        loot: {
+          name: 'Эликсир Храбрости (Рождественская баночка Julebryg)',
+          desc: 'Праздничное датское рождественское пиво. Согревает сердце, дарует звонкий смех и +5 к храбрости!',
+          wishItem: 'Рождественское пиво (Julebryg)'
+        },
+        choices: [
+          {
+            tag: '[ХРАБРОСТЬ]',
+            title: 'Сделать глоток за силу и здоровье именинницы',
+            skill: 'Стойкость',
+            desc: 'Вскрыть баночку с праздничным щелчком и отсалютовать небу.',
+            outcome: 'Тепло разливается по телу! Шкала страха падает до нуля, шкала радости — 100%!'
+          },
+          {
+            tag: '[ОБАЯНИЕ]',
+            title: 'Произнести громкий датский тост: «Skål!»',
+            skill: 'Харизма',
+            desc: 'Поднять баночку вместе со спутником и звонко чокнуться.',
+            outcome: 'Эхо разносит тост по округе. Все духи праздника встают на вашу сторону.'
+          }
+        ],
+        claimed: false
+      },
+      {
+        id: 'loc-bottle',
+        badge: 'КВЕСТ 3',
+        name: 'Яблочный Исток Жизни',
+        realAddress: 'Æblelunden & ручей Fladså (Северо-Восток)',
+        lat: 55.210400,
+        lng: 11.776500,
+        icon: '💧',
+        type: 'Квест',
+        lore: 'Живописная тропа вдоль ручья среди яблоневых посадок. Воздух здесь полон свежести и шепота воды.',
+        loot: {
+          name: 'Фляга Вечного Источника (Металлическая бутылка)',
+          desc: 'Стильная металлическая бутылка с узким горлышком. Хранит тепло живительного эликсира (горячего чая или какао).',
+          wishItem: 'Metal bottle with narrow bottleneck'
+        },
+        choices: [
+          {
+            tag: '[БОДРОСТЬ]',
+            title: 'Сделать согревающий глоток у воды',
+            skill: 'Выносливость',
+            desc: 'Открутить узкое горлышко и согреться горячим напитком на свежем воздухе.',
+            outcome: 'Прилив сил и уюта! Усталость от прогулки мгновенно отступает.'
+          },
+          {
+            tag: '[ЖЕЛАНИЕ]',
+            title: 'Опустить золотистый лист в течение ручья',
+            skill: 'Вера',
+            desc: 'Загадать сокровенное желание на новый год жизни и отправить его по течению.',
+            outcome: 'Поток бережно подхватывает лист. Желание принято речными духами.'
+          }
+        ],
+        claimed: false
+      },
+      {
+        id: 'loc-faxekondi',
+        badge: 'КВЕСТ 4',
+        name: 'Святилище Зеландской Радости',
+        realAddress: 'Смотровая скамейка у перекрестка Parkvej / Dyssegårdsvej',
+        lat: 55.204600,
+        lng: 11.768600,
+        icon: '🍋',
+        type: 'Квест',
+        lore: 'Здесь сокрыт величайший нектар датских земель, рожденный прямо здесь, в регионе Зеландия — легендарный Faxe Kondi!',
+        loot: {
+          name: 'Эликсир Истинного Счастья (Бутылка Faxe Kondi)',
+          desc: 'Священный шипящий эликсир счастья, лимонной свежести и чистой энергии.',
+          wishItem: 'Бутылка Faxe Kondi'
+        },
+        choices: [
+          {
+            tag: '[ЭЙФОРИЯ]',
+            title: 'Сделать первый освежающий глоток нектара',
+            skill: 'Восторг',
+            desc: 'Открутить крышку с характерным шипением и вдохнуть цитрусовый аромат.',
+            outcome: 'Абсолютное счастье! Вкус богов возвращает бодрость и дарит сияющую улыбку.'
+          },
+          {
+            tag: '[ТРИУМФ ЗЕЛАНДИИ]',
+            title: 'Разгадать тайную формулу идеального настроения',
+            skill: 'Интеллект',
+            desc: 'Вспомнить, что город Faxe находится буквально по соседству с Нестведом.',
+            outcome: 'Связь с местными духами установлена! Все квесты странствия завершены с отличием.'
+          }
+        ],
+        claimed: false
+      },
+      {
+        id: 'loc-vault',
+        badge: 'ФИНАЛ',
+        name: 'Тайный Чертог Цитадели (Финал)',
+        realAddress: 'Troensevej 9 (Домашнее логово)',
+        lat: 55.206357,
+        lng: 11.767954,
+        icon: '👑',
+        type: 'Финал',
+        lore: 'Финальный рубеж похода! Все тропы приводят обратно в Цитадель, где героиня собирает все трофеи воедино.',
+        loot: {
+          name: 'Королевский Триумф (Все 5 трофеев в сборе!)',
+          desc: 'Калимба, Фляга, Сумка, Faxe Kondi и Рождественское пиво — полный набор чемпионки!',
+          wishItem: 'Королевский Триумф'
+        },
+        choices: [
+          {
+            tag: '[ТРИУМФ]',
+            title: 'Зажечь свечи и задуть их под аплодисменты',
+            skill: '100% Завершение',
+            desc: 'Включить любимую музыку, открыть праздничный стол и обнять Мастера Игры.',
+            outcome: 'ГРАНДИОЗНАЯ ПОБЕДА! Квест пройден на Платину! С Днем Рождения, любимая!'
+          }
+        ],
+        claimed: false
+      }
+    ];
+
+    // --- 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ ---
+    let questLocations = [];
+    let activeLocation = null;
+    let map = null;
+    let markersMap = {};
+    let playerMarker = null;
+    let playerCoords = { lat: 55.206357, lng: 11.767954 };
+    let mapMode = 'parchment'; // 'parchment' | 'satellite' | 'streets'
+    let tileLayers = {};
+    let isWatchingGps = false;
+
+    // --- 4. ИНИЦИАЛИЗАЦИЯ И ХРАНИЛИЩЕ ---
+    function loadSavedLocations() {
+      try {
+        const saved = localStorage.getItem('dr_olha_quest_locations_v2');
+        if (saved) {
+          questLocations = JSON.parse(saved);
+        } else {
+          questLocations = JSON.parse(JSON.stringify(DEFAULT_LOCATIONS));
+          saveLocations();
+        }
+      } catch(e) {
+        questLocations = JSON.parse(JSON.stringify(DEFAULT_LOCATIONS));
+      }
+    }
+
+    function saveLocations() {
+      try {
+        localStorage.setItem('dr_olha_quest_locations_v2', JSON.stringify(questLocations));
+      } catch(e) {}
+    }
+
+    // --- 5. ИНИЦИАЛИЗАЦИЯ КАРТЫ LEAFLET ---
+    function initMap() {
+      // Центр: Troensevej 9, Næstved
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([55.206357, 11.767954], 16);
+
+      // Слои тайлов:
+      // 1. OpenStreetMap
+      tileLayers.streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      });
+
+      // 2. Спутниковые снимки Esri
+      tileLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+      });
+
+      // По умолчанию включаем улицы с пергаментным фильтром
+      tileLayers.streets.addTo(map);
+      document.getElementById('map').classList.add('map-parchment-mode');
+
+      // Контрол зума в правом нижнем углу
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Маркер игрока
+      const playerIcon = L.divIcon({
+        className: 'quest-marker-icon',
+        html: '<div class="player-marker"></div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+      playerMarker = L.marker([playerCoords.lat, playerCoords.lng], { icon: playerIcon, zIndexOffset: 1000 }).addTo(map);
+
+      // Клик по карте для DM Терминала (копирование координат)
+      map.on('click', (e) => {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        document.getElementById('dm-input-lat').value = lat;
+        document.getElementById('dm-input-lng').value = lng;
+        Sound.click();
+      });
+
+      renderMapMarkers();
+      renderQuestsTrack();
+      updateProgressStats();
+    }
+
+    // --- 6. ОТРИСОВКА МАРКЕРОВ НА КАРТЕ ---
+    function renderMapMarkers() {
+      // Удаляем старые маркеры
+      Object.values(markersMap).forEach(m => map.removeLayer(m));
+      markersMap = {};
+
+      questLocations.forEach(loc => {
+        const isClaimed = loc.claimed;
+        const isFinal = loc.type === 'Финал';
+        const bgColor = isClaimed ? 'background: #059669;' : (isFinal ? 'background: #dc2626;' : 'background: #c89332;');
+
+        const iconHtml = `
+          <div class="marker-pin-wrap" id="pin-wrap-${loc.id}">
+            <div class="marker-badge" style="${bgColor}">
+              ${isClaimed ? '✓' : loc.icon}
+              ${!isClaimed ? '<div class="marker-pulse-ring"></div>' : ''}
+            </div>
+            <div style="background: rgba(10,14,22,0.85); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 2px 6px; margin-top: 3px; font-size: 10px; font-weight: bold; color: #fff; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">
+              ${loc.name}
+            </div>
+          </div>
+        `;
+
+        const customIcon = L.divIcon({
+          className: 'quest-marker-icon',
+          html: iconHtml,
+          iconSize: [50, 65],
+          iconAnchor: [25, 45]
+        });
+
+        const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+        marker.on('click', () => openQuestDetail(loc.id));
+        markersMap[loc.id] = marker;
+      });
+    }
+
+    // --- 7. РАСЧЕТ РАССТОЯНИЯ (ГАВЕРСИНУС) ---
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // метров
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    }
+
+    // --- 8. НИЖНИЙ ТРЕК ЛОКАЦИЙ (FOOTER SCROLL) ---
+    function renderQuestsTrack() {
+      const track = document.getElementById('quests-scroll-track');
+      track.innerHTML = '';
+
+      questLocations.forEach(loc => {
+        const dist = calculateDistance(playerCoords.lat, playerCoords.lng, loc.lat, loc.lng);
+        const card = document.createElement('div');
+        card.className = `shrink-0 glass-detroit rounded-2xl p-2.5 px-3 flex items-center gap-2.5 cursor-pointer border transition active:scale-95 ${
+          loc.claimed ? 'border-emerald-500/50 text-emerald-200' : 'border-cyan-500/30 text-white'
+        }`;
+        card.innerHTML = `
+          <span class="text-xl">${loc.claimed ? '✅' : loc.icon}</span>
+          <div class="text-left">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] font-scifi font-bold text-amber-400 uppercase">${loc.badge}</span>
+              <span class="text-[10px] text-slate-400 font-mono">📍 ${dist}м</span>
+            </div>
+            <div class="text-xs font-bold truncate max-w-[140px]">${loc.name}</div>
+          </div>
+        `;
+        card.onclick = () => {
+          map.flyTo([loc.lat, loc.lng], 17, { duration: 1 });
+          openQuestDetail(loc.id);
+        };
+        track.appendChild(card);
+      });
+    }
+
+    // --- 9. ОТКРЫТИЕ КАРТОЧКИ КВЕСТА / DETROIT ИССЛЕДОВАНИЕ ---
+    function openQuestDetail(locId) {
+      const loc = questLocations.find(l => l.id === locId);
+      if (!loc) return;
+      activeLocation = loc;
+      Sound.click();
+
+      const dist = calculateDistance(playerCoords.lat, playerCoords.lng, loc.lat, loc.lng);
+
+      document.getElementById('modal-node-icon').textContent = loc.icon;
+      document.getElementById('modal-node-badge').textContent = loc.badge;
+      document.getElementById('modal-node-distance').textContent = `📍 ${dist}м до цели`;
+      document.getElementById('modal-node-title').textContent = loc.name;
+      document.getElementById('modal-node-real').textContent = loc.realAddress;
+      document.getElementById('modal-node-lore').textContent = loc.lore;
+      document.getElementById('modal-node-loot-name').textContent = loc.loot.name;
+      document.getElementById('modal-node-loot-desc').textContent = loc.loot.desc;
+
+      const claimBadge = document.getElementById('modal-node-claim-badge');
+      const claimBtn = document.getElementById('btn-modal-claim');
+      if (loc.claimed) {
+        claimBadge.textContent = '✓ В ИНВЕНТАРЕ';
+        claimBadge.className = 'text-[10px] font-bold text-emerald-400 font-mono';
+        claimBtn.textContent = 'Артефакт уже получен';
+        claimBtn.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        claimBadge.textContent = '● ОЖИДАЕТ НАХОДКИ';
+        claimBadge.className = 'text-[10px] font-bold text-amber-400 font-mono';
+        claimBtn.textContent = '🏆 Забрать артефакт в инвентарь';
+        claimBtn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+
+      // Генерация развилок Detroit
+      const choicesContainer = document.getElementById('modal-choices-list');
+      choicesContainer.innerHTML = '';
+      const outcomeBox = document.getElementById('modal-choice-outcome');
+      outcomeBox.classList.add('hidden');
+
+      loc.choices.forEach((choice, idx) => {
+        const choiceEl = document.createElement('div');
+        choiceEl.className = 'detroit-choice-card rounded-xl p-3 text-xs';
+        choiceEl.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-scifi font-bold text-cyan-400 text-[11px]">${choice.tag}</span>
+            <span class="text-[10px] text-amber-300 font-mono">${choice.skill}</span>
+          </div>
+          <div class="font-bold text-white text-xs mb-0.5">${choice.title}</div>
+          <p class="text-[11px] text-slate-400 leading-tight">${choice.desc}</p>
+        `;
+        choiceEl.onclick = () => {
+          document.querySelectorAll('.detroit-choice-card').forEach(c => c.classList.remove('selected'));
+          choiceEl.classList.add('selected');
+          Sound.click();
+          outcomeBox.classList.remove('hidden');
+          document.getElementById('modal-choice-outcome-text').textContent = choice.outcome;
+        };
+        choicesContainer.appendChild(choiceEl);
+      });
+
+      document.getElementById('modal-quest-detail').classList.remove('hidden');
+    }
+
+    // --- 10. КНОПКА ЗАБРАТЬ АРТЕФАКТ ---
+    document.getElementById('btn-modal-claim').onclick = () => {
+      if (!activeLocation || activeLocation.claimed) return;
+      activeLocation.claimed = true;
+      saveLocations();
+      Sound.fanfare();
+
+      renderMapMarkers();
+      renderQuestsTrack();
+      updateProgressStats();
+      openQuestDetail(activeLocation.id);
+    };
+
+    // --- 11. ИНВЕНТАРЬ ---
+    function openInventory() {
+      Sound.click();
+      const grid = document.getElementById('inventory-grid');
+      grid.innerHTML = '';
+
+      questLocations.forEach(loc => {
+        const item = document.createElement('div');
+        item.className = `p-3 rounded-2xl border transition ${
+          loc.claimed ? 'bg-amber-950/40 border-amber-500/50 text-amber-100' : 'bg-black/40 border-slate-800 text-slate-500 opacity-60'
+        }`;
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 mb-1.5">
+            <span class="text-xl">${loc.claimed ? '🎁' : '🔒'}</span>
+            <div class="font-bold text-xs truncate">${loc.loot.name}</div>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-tight">${loc.claimed ? loc.loot.desc : 'Локация еще не исследована'}</p>
+          <div class="mt-2 text-[9px] font-mono text-amber-400/80">Ориентир: ${loc.realAddress}</div>
+        `;
+        grid.appendChild(item);
+      });
+
+      document.getElementById('modal-inventory').classList.remove('hidden');
+    }
+
+    function updateProgressStats() {
+      const claimed = questLocations.filter(l => l.claimed).length;
+      const total = questLocations.length;
+      document.getElementById('stat-loot-progress').textContent = `${claimed} / ${total}`;
+    }
+
+    // --- 12. КУБИК D20 С АНИМАЦИЕЙ ---
+    function rollD20() {
+      Sound.dice();
+      const quickVal = document.getElementById('quick-d20-val');
+      let count = 0;
+      const int = setInterval(() => {
+        const rand = Math.floor(Math.random() * 20) + 1;
+        quickVal.textContent = rand;
+        count++;
+        if (count > 9) {
+          clearInterval(int);
+          const finalVal = Math.floor(Math.random() * 20) + 1;
+          quickVal.textContent = finalVal;
+          if (finalVal === 20) {
+            Sound.fanfare();
+            alert('🔥 КРИТИЧЕСКИЙ УСПЕХ (20)! Мастер Игры исполняет любое желание героини прямо сейчас!');
+          }
+        }
+      }, 50);
+    }
+
+    // --- 13. РЕАЛЬНЫЙ GPS НАВИГАТОР ---
+    function toggleGps() {
+      if (!navigator.geolocation) {
+        alert('Геолокация не поддерживается вашим браузером');
+        return;
+      }
+
+      if (isWatchingGps) {
+        isWatchingGps = false;
+        alert('GPS-трекинг отключен');
+        return;
+      }
+
+      Sound.click();
+      isWatchingGps = true;
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          playerCoords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          };
+          playerMarker.setLatLng([playerCoords.lat, playerCoords.lng]);
+          map.panTo([playerCoords.lat, playerCoords.lng]);
+
+          // Проверка приближения к квестам
+          checkProximityToQuests();
+          renderQuestsTrack();
+        },
+        (err) => {
+          console.warn('GPS Error:', err);
+          isWatchingGps = false;
+        },
+        { enableHighAccuracy: true, maximumAge: 5000 }
+      );
+    }
+
+    function checkProximityToQuests() {
+      let nearest = null;
+      let minDistance = 999999;
+
+      questLocations.forEach(loc => {
+        if (!loc.claimed) {
+          const d = calculateDistance(playerCoords.lat, playerCoords.lng, loc.lat, loc.lng);
+          if (d < minDistance) {
+            minDistance = d;
+            nearest = loc;
+          }
+        }
+      });
+
+      const banner = document.getElementById('proximity-banner');
+      if (nearest && minDistance <= 40) {
+        banner.classList.remove('hidden');
+        document.getElementById('proximity-text').textContent = `✨ Вы у алтаря «${nearest.name}»! Расстояние: ${minDistance}м`;
+        Sound.chime();
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    // --- 14. ПЕРЕКЛЮЧЕНИЕ СТИЛЕЙ КАРТЫ ---
+    function toggleMapLayer() {
+      Sound.click();
+      const mapEl = document.getElementById('map');
+      if (mapMode === 'parchment') {
+        mapMode = 'satellite';
+        map.removeLayer(tileLayers.streets);
+        tileLayers.satellite.addTo(map);
+        mapEl.classList.remove('map-parchment-mode');
+        mapEl.classList.add('map-satellite-mode');
+      } else if (mapMode === 'satellite') {
+        mapMode = 'streets';
+        map.removeLayer(tileLayers.satellite);
+        tileLayers.streets.addTo(map);
+        mapEl.classList.remove('map-satellite-mode');
+      } else {
+        mapMode = 'parchment';
+        mapEl.classList.add('map-parchment-mode');
+      }
+    }
+
+    // --- 15. DM TERMINAL (МАСТЕР ИГРЫ) ---
+    function openDmTerminal() {
+      Sound.click();
+      document.getElementById('modal-terminal').classList.remove('hidden');
+      document.getElementById('dm-loc-count').textContent = questLocations.length;
+      renderDmLocationsList();
+      renderDmTeleportButtons();
+      document.getElementById('dm-json-area').value = JSON.stringify(questLocations, null, 2);
+    }
+
+    function renderDmLocationsList() {
+      const container = document.getElementById('dm-locations-rendered-list');
+      container.innerHTML = '';
+
+      questLocations.forEach((loc, idx) => {
+        const item = document.createElement('div');
+        item.className = 'bg-black/50 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-2';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">${loc.icon}</span>
+            <div>
+              <div class="font-bold text-white text-xs">${loc.name}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${loc.realAddress} • [${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}]</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-400 text-[10px]" onclick="teleportPlayerTo(${loc.lat}, ${loc.lng})">Перейти</button>
+            <button class="px-2.5 py-1 rounded bg-red-950 hover:bg-red-900 text-red-300 text-[10px]" onclick="deleteQuestLocation('${loc.id}')">Удалить</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderDmTeleportButtons() {
+      const container = document.getElementById('dm-teleport-buttons');
+      container.innerHTML = '';
+
+      questLocations.forEach(loc => {
+        const btn = document.createElement('button');
+        btn.className = 'p-2 rounded-lg bg-black/60 hover:bg-slate-800 border border-slate-700 text-left text-[11px] truncate';
+        btn.innerHTML = `<span>${loc.icon}</span> ${loc.name}`;
+        btn.onclick = () => {
+          teleportPlayerTo(loc.lat, loc.lng);
+          document.getElementById('modal-terminal').classList.add('hidden');
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function teleportPlayerTo(lat, lng) {
+      playerCoords = { lat, lng };
+      playerMarker.setLatLng([lat, lng]);
+      map.flyTo([lat, lng], 17);
+      Sound.chime();
+      checkProximityToQuests();
+      renderQuestsTrack();
+    }
+
+    function deleteQuestLocation(id) {
+      if (confirm('Удалить эту квестовую локацию?')) {
+        questLocations = questLocations.filter(l => l.id !== id);
+        saveLocations();
+        renderMapMarkers();
+        renderQuestsTrack();
+        renderDmLocationsList();
+        renderDmTeleportButtons();
+        updateProgressStats();
+        Sound.click();
+      }
+    }
+
+    // Сохранение новой точки из DM Терминала
+    document.getElementById('dm-btn-save-point').onclick = () => {
+      const name = document.getElementById('dm-input-name').value.trim() || 'Тайное Святилище';
+      const realAddress = document.getElementById('dm-input-real').value.trim() || 'Улица Нестведа';
+      const lat = parseFloat(document.getElementById('dm-input-lat').value) || 55.206357;
+      const lng = parseFloat(document.getElementById('dm-input-lng').value) || 11.767954;
+      const icon = document.getElementById('dm-input-icon').value.trim() || '✨';
+      const lootChoice = document.getElementById('dm-input-loot').value;
+      const type = document.getElementById('dm-input-type').value;
+      const lore = document.getElementById('dm-input-lore').value.trim() || 'Новое таинственное место на карте сокровищ.';
+
+      const newId = `loc-${Date.now()}`;
+      questLocations.push({
+        id: newId,
+        badge: `УЗЕЛ #${questLocations.length}`,
+        name: name,
+        realAddress: realAddress,
+        lat: lat,
+        lng: lng,
+        icon: icon,
+        type: type,
+        lore: lore,
+        loot: {
+          name: lootChoice,
+          desc: 'Специальная реликвия из списка желаний.',
+          wishItem: lootChoice
+        },
+        choices: [
+          {
+            tag: '[ИССЛЕДОВАНИЕ]',
+            title: 'Осмотреть местоположение',
+            skill: 'Внимательность',
+            desc: 'Найти спрятанную подсказку или артефакт.',
+            outcome: 'Локация успешно пройдена! Артефакт разблокирован.'
+          }
+        ],
+        claimed: false
+      });
+
+      saveLocations();
+      renderMapMarkers();
+      renderQuestsTrack();
+      updateProgressStats();
+      Sound.fanfare();
+      alert(`Точка «${name}» успешно нанесена на карту!`);
+      document.getElementById('modal-terminal').classList.add('hidden');
+    };
+
+    // Сброс прогресса
+    document.getElementById('btn-reset-player-progress').onclick = () => {
+      if (confirm('Сбросить весь найденный лут (сделать все точки неисследованными)?')) {
+        questLocations.forEach(l => l.claimed = false);
+        saveLocations();
+        renderMapMarkers();
+        renderQuestsTrack();
+        updateProgressStats();
+        Sound.click();
+        alert('Прогресс обнулен! Квест готов для игры.');
+      }
+    };
+
+    // Вкладки терминала
+    const tabs = ['add', 'list', 'gps', 'json'];
+    tabs.forEach(tab => {
+      document.getElementById(`tab-btn-${tab}`).onclick = () => {
+        tabs.forEach(t => {
+          document.getElementById(`tab-btn-${t}`).className = 'py-2.5 px-4 text-slate-400 hover:text-white';
+          document.getElementById(`tab-content-${t}`).classList.add('hidden');
+        });
+        document.getElementById(`tab-btn-${tab}`).className = 'py-2.5 px-4 text-cyan-400 border-b-2 border-cyan-400 font-bold';
+        document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+      };
+    });
+
+    // Экспорт / Импорт JSON
+    document.getElementById('btn-copy-json').onclick = () => {
+      const area = document.getElementById('dm-json-area');
+      area.select();
+      navigator.clipboard.writeText(area.value);
+      alert('JSON скопирован в буфер обмена!');
+    };
+
+    document.getElementById('btn-apply-json').onclick = () => {
+      try {
+        const val = JSON.parse(document.getElementById('dm-json-area').value);
+        if (Array.isArray(val)) {
+          questLocations = val;
+          saveLocations();
+          renderMapMarkers();
+          renderQuestsTrack();
+          updateProgressStats();
+          alert('Данные квестов успешно обновлены из JSON!');
+        }
+      } catch(e) {
+        alert('Ошибка в формате JSON: ' + e.message);
+      }
+    };
+
+    document.getElementById('btn-reset-defaults').onclick = () => {
+      if (confirm('Сбросить к изначальным точкам Нестведа?')) {
+        questLocations = JSON.parse(JSON.stringify(DEFAULT_LOCATIONS));
+        saveLocations();
+        renderMapMarkers();
+        renderQuestsTrack();
+        updateProgressStats();
+        document.getElementById('dm-json-area').value = JSON.stringify(questLocations, null, 2);
+        alert('Точки сброшены к стандартным!');
+      }
+    };
+
+    // --- 16. СВЯЗЫВАНИЕ КНОПОК И МОДАЛОК ---
+    document.getElementById('btn-roll-d20').onclick = rollD20;
+    document.getElementById('btn-modal-roll-check').onclick = rollD20;
+    document.getElementById('btn-open-inventory').onclick = openInventory;
+    document.getElementById('btn-close-inventory').onclick = () => document.getElementById('modal-inventory').classList.add('hidden');
+    document.getElementById('btn-close-quest-modal').onclick = () => document.getElementById('modal-quest-detail').classList.add('hidden');
+    document.getElementById('btn-locate-me').onclick = toggleGps;
+    document.getElementById('btn-toggle-map-layer').onclick = toggleMapLayer;
+    document.getElementById('btn-open-terminal').onclick = openDmTerminal;
+    document.getElementById('btn-close-terminal').onclick = () => document.getElementById('modal-terminal').classList.add('hidden');
+
+    // Проверка режима Мастера (URL ?dm=1 или тройной клик по короне)
+    function setupDmAccess() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDmUrl = urlParams.get('dm') === '1' || urlParams.get('admin') === '1';
+      const terminalBtn = document.getElementById('btn-open-terminal');
+
+      if (isDmUrl) {
+        terminalBtn.classList.remove('hidden');
+      }
+
+      // Секретный тройной клик по иконке короны
+      let crownClicks = 0;
+      let lastClickTime = 0;
+      const crownIcon = document.querySelector('.glass-detroit .relative');
+      if (crownIcon) {
+        crownIcon.style.cursor = 'pointer';
+        crownIcon.onclick = () => {
+          const now = Date.now();
+          if (now - lastClickTime < 600) {
+            crownClicks++;
+          } else {
+            crownClicks = 1;
+          }
+          lastClickTime = now;
+
+          if (crownClicks >= 3) {
+            terminalBtn.classList.remove('hidden');
+            Sound.fanfare();
+            alert('🗝️ Режим Мастера Игры (DM) активирован! Кнопка терминала открыта в верхнем правом меню.');
+            crownClicks = 0;
+          }
+        };
+      }
+    }
+
+    // Старт
+    window.onload = () => {
+      loadSavedLocations();
+      initMap();
+      setupDmAccess();
+    };
+  </script>
+</body>
+</html>
